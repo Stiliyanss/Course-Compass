@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { validateRegister, hasErrors } from '../../utils/validators';
+import { Compass } from 'lucide-react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
@@ -44,11 +45,28 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg">
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      {/* Background glow */}
+      <div className="absolute top-1/4 left-1/3 h-80 w-80 rounded-full bg-purple-600/15 blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/3 h-64 w-64 rounded-full bg-blue-600/10 blur-3xl" />
+
+      <div className="relative w-full max-w-md space-y-8 rounded-xl border border-slate-800 bg-slate-900/70 p-8 backdrop-blur-sm">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Create account</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-xl font-bold text-white"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            <Compass className="h-6 w-6" />
+            Course Compass
+          </Link>
+          <h1
+            className="mt-6 text-2xl font-bold text-white"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Create account
+          </h1>
+          <p className="mt-2 text-sm text-gray-400">
             Sign up to start exploring courses
           </p>
         </div>
@@ -96,9 +114,9 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-gray-400">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-purple-400 hover:text-purple-300 transition-colors">
             Sign in
           </Link>
         </p>
