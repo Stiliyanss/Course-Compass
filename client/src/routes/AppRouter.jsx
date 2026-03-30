@@ -8,12 +8,24 @@ import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
+import PublicLayout from '../layouts/PublicLayout';
 
 const router = createBrowserRouter([
+  // Public routes — wrapped with Navbar + Footer
   {
-    path: '/',
-    element: <LandingPage />,
+    element: <PublicLayout />,
+    children: [
+      {
+        path: '/',
+        element: <LandingPage />,
+      },
+      {
+        path: '/forbidden',
+        element: <ForbiddenPage />,
+      },
+    ],
   },
+
   {
     path: '/login',
     element: <LoginPage />,
@@ -26,11 +38,6 @@ const router = createBrowserRouter([
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
   },
-  {
-    path: '/forbidden',
-    element: <ForbiddenPage />,
-  },
-
   // Student routes
   {
     element: <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]} />,

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Users, Award, ArrowRight, Compass, Sparkles } from 'lucide-react';
+import { BookOpen, Users, Award, ArrowRight, Sparkles } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const features = [
@@ -22,54 +22,10 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { user, profile } = useAuth();
-
-  function getDashboardLink() {
-    if (!profile) return '/login';
-    if (profile.role === 'admin') return '/admin/dashboard';
-    if (profile.role === 'instructor') return '/instructor/dashboard';
-    return '/student/dashboard';
-  }
+  const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Navbar */}
-      <nav className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-2xl font-bold"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            <Compass className="h-7 w-7 text-white" />
-            <span className="text-white">
-              Course Compass
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/courses" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Courses
-            </Link>
-            {user ? (
-              <Link to={getDashboardLink()}>
-                <Button variant="primary" className="text-sm">
-                  Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Sign In
-                </Link>
-                <Link to="/register">
-                  <Button className="text-sm">Get Started</Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
+    <>
       {/* Hero Section */}
       <section className="relative overflow-hidden py-24 md:py-32">
         {/* Background glow effects */}
@@ -171,13 +127,6 @@ export default function LandingPage() {
           </div>
         </section>
       )}
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-8">
-        <div className="mx-auto max-w-7xl px-6 text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Course Compass. All rights reserved.
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }
