@@ -2,10 +2,11 @@ import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 
 const variants = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700',
-  secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+  primary: 'bg-purple-600 text-white hover:bg-purple-700',
+  secondary: 'bg-slate-700 text-gray-200 hover:bg-slate-600',
   danger: 'bg-red-600 text-white hover:bg-red-700',
-  outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+  outline: 'border border-slate-600 text-gray-300 hover:bg-slate-800',
+  ghost: 'text-gray-300 hover:text-white hover:bg-slate-800',
 };
 
 export default function Button({
