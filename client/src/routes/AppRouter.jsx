@@ -10,6 +10,7 @@ import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
 import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -46,13 +47,18 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Student routes
+  // Student routes — ProtectedRoute checks auth, DashboardLayout provides sidebar
   {
     element: <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]} />,
     children: [
       {
-        path: '/student/dashboard',
-        element: <div>Student Dashboard (coming soon)</div>,
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '/student/dashboard',
+            element: <div className="text-white">Student Dashboard (coming soon)</div>,
+          },
+        ],
       },
     ],
   },
@@ -62,8 +68,13 @@ const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]} />,
     children: [
       {
-        path: '/instructor/dashboard',
-        element: <div>Instructor Dashboard (coming soon)</div>,
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '/instructor/dashboard',
+            element: <div className="text-white">Instructor Dashboard (coming soon)</div>,
+          },
+        ],
       },
     ],
   },
@@ -73,8 +84,13 @@ const router = createBrowserRouter([
     element: <ProtectedRoute allowedRoles={[ROLES.ADMIN]} />,
     children: [
       {
-        path: '/admin/dashboard',
-        element: <div>Admin Dashboard (coming soon)</div>,
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '/admin/dashboard',
+            element: <div className="text-white">Admin Dashboard (coming soon)</div>,
+          },
+        ],
       },
     ],
   },
