@@ -9,6 +9,7 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
 import PublicLayout from '../layouts/PublicLayout';
+import AuthLayout from '../layouts/AuthLayout';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -26,18 +27,25 @@ const router = createBrowserRouter([
     ],
   },
 
+  // Auth routes — wrapped with dark glass card + logo
   {
-    path: '/login',
-    element: <LoginPage />,
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <LoginPage />,
+      },
+      {
+        path: '/register',
+        element: <RegisterPage />,
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+    ],
   },
-  {
-    path: '/register',
-    element: <RegisterPage />,
-  },
-  {
-    path: '/forgot-password',
-    element: <ForgotPasswordPage />,
-  },
+
   // Student routes
   {
     element: <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]} />,
