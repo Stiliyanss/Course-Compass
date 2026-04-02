@@ -40,6 +40,9 @@ export default function Navbar() {
 
           {user ? (
             <>
+              <Link to="/student/my-courses" className="text-sm text-gray-400 hover:text-white transition-colors">
+                My Courses
+              </Link>
               <Link to={getDashboardLink(profile?.role)}>
                 <Button variant="primary" className="text-sm">
                   Dashboard
