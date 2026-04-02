@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, Users, Award, ArrowRight, Sparkles } from 'lucide-react';
+import { ROLES } from '../../utils/constants';
 import Button from '../../components/ui/Button';
+import BecomeInstructor from '../../components/BecomeInstructor';
 
 const features = [
   {
@@ -22,7 +24,8 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isStudent = user && profile?.role === ROLES.STUDENT;
 
   return (
     <>
@@ -103,6 +106,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Become an Instructor — only visible to logged-in students */}
+      {isStudent && <BecomeInstructor />}
 
       {/* CTA Section */}
       {!user && (
