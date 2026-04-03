@@ -8,6 +8,7 @@ import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
+import CourseCatalogPage from '../pages/public/CourseCatalogPage';
 import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <LandingPage />,
+      },
+      {
+        path: '/courses',
+        element: <CourseCatalogPage />,
       },
       {
         path: '/forbidden',
