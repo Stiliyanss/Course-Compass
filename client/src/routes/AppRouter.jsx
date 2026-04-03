@@ -9,6 +9,7 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
 import CourseCatalogPage from '../pages/public/CourseCatalogPage';
+import CourseDetailPage from '../pages/public/CourseDetailPage';
 import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
       {
         path: '/courses',
         element: <CourseCatalogPage />,
+      },
+      {
+        path: '/courses/:id',
+        element: <CourseDetailPage />,
       },
       {
         path: '/forbidden',
