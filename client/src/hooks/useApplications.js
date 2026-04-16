@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyApplication, submitApplication, fetchAllApplications, reviewApplication } from '../api/applications';
+import { fetchMyApplication, submitApplication, deleteMyApplication, fetchAllApplications, reviewApplication } from '../api/applications';
 
 /**
  * Hook to fetch the current user's instructor application.
@@ -27,6 +27,21 @@ export function useSubmitApplication() {
     // that 'my-application' data is stale — it will refetch
     // automatically, and the page will switch from the form
     // to the "application submitted" status view.
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-application'] });
+    },
+  });
+}
+
+/**
+ * Hook to delete a rejected application so the user can reapply.
+ * Invalidates 'my-application' so the form reappears.
+ */
+export function useDeleteApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteMyApplication,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-application'] });
     },

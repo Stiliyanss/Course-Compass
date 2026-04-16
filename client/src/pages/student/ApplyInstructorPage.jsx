@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMyApplication, useSubmitApplication } from '../../hooks/useApplications';
+import { useMyApplication, useSubmitApplication, useDeleteApplication } from '../../hooks/useApplications';
 import { validateApplication, hasErrors } from '../../utils/validators';
 import { CheckCircle, Clock, XCircle, Send, GraduationCap, Lightbulb, BookOpen, Sparkles } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -48,8 +48,17 @@ export default function ApplyInstructorPage() {
     );
   }
 
+  const deleteMutation = useDeleteApplication();
+
+  function handleRetry() {
+    deleteMutation.mutate(application.id, {
+      onSuccess: () => toast.success('You can now submit a new application'),
+      onError: (err) => toast.error(err.message),
+    });
+  }
+
   if (application) {
-    return <ApplicationStatus application={application} />;
+    return <ApplicationStatus application={application} onRetry={handleRetry} isRetrying={deleteMutation.isPending} />;
   }
 
   return (
@@ -198,7 +207,7 @@ function Step({ number, text }) {
   );
 }
 
-function ApplicationStatus({ application }) {
+function ApplicationStatus({ application, onRetry, isRetrying }) {
   const statusConfig = {
     pending: {
       icon: Clock,
@@ -261,6 +270,12 @@ function ApplicationStatus({ application }) {
                   Go to Instructor Dashboard
                 </Button>
               </Link>
+            )}
+            {application.status === 'rejected' && (
+              <Button className="mt-4" onClick={onRetry} loading={isRetrying}>
+                <Send className="mr-2 h-4 w-4" />
+                Apply Again
+              </Button>
             )}
           </div>
         </div>

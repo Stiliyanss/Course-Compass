@@ -42,6 +42,19 @@ export async function fetchMyApplication() {
   return data;
 }
 
+/**
+ * Delete the current user's application (e.g. after rejection).
+ * Allows the user to submit a new application.
+ */
+export async function deleteMyApplication(id) {
+  const { error } = await supabase
+    .from('instructor_applications')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 // ── Admin functions ──────────────────────────────────────────
 
 /**
