@@ -41,3 +41,57 @@ export async function fetchMyApplication() {
   if (error) throw error;
   return data;
 }
+
+// ── Admin functions ──────────────────────────────────────────
+
+/**
+ * Fetch all instructor applications (admin only).
+ * Joins the profiles table so we can show the applicant's name and email.
+ * RLS policy "Admins can view all applications" ensures only admins can call this.
+ */
+export async function fetchAllApplications() {
+  const { data, error } = await supabase
+    .from('instructor_applications')
+    .select('*, applicant:profiles(id, full_name, email)')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Approve or reject an application (admin only).
+ *
+ * Two things happen:
+ * 1. Update the application row — set status and reviewed_at timestamp
+ * 2. If approved — update the user's profile role from 'student' to 'instructor'
+ *
+ * Both operations must succeed. If the role update fails,
+ * we throw an error so the admin knows something went wrong.
+ */
+export async function reviewApplication(id, status) {
+  // Step 1: Update the application status
+  const { data: application, error: appError } = await supabase
+    .from('instructor_applications')
+    .update({
+      status,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select('*, applicant:profiles(id, full_name, email)')
+    .single();
+
+  if (appError) throw appError;
+
+  // Step 2: If approved, promote the user to instructor
+  if (status === 'approved') {
+    const { error: roleError } = await supabase
+      .from('profiles')
+      .update({ role: 'instructor' })
+      .eq('id', application.applicant.id);
+
+    if (roleError) throw roleError;
+  }
+
+  return application;
+}
