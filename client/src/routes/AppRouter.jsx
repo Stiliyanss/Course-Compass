@@ -14,6 +14,7 @@ import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
+import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -104,6 +105,10 @@ const router = createBrowserRouter([
           {
             path: '/admin/dashboard',
             element: <div className="text-white">Admin Dashboard (coming soon)</div>,
+          },
+          {
+            path: '/admin/applications',
+            element: <AdminApplicationsPage />,
           },
         ],
       },
