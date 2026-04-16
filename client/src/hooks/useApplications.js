@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyApplication, submitApplication } from '../api/applications';
+import { fetchMyApplication, submitApplication, fetchAllApplications, reviewApplication } from '../api/applications';
 
 /**
  * Hook to fetch the current user's instructor application.
@@ -29,6 +29,41 @@ export function useSubmitApplication() {
     // to the "application submitted" status view.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-application'] });
+    },
+  });
+}
+
+// ── Admin hooks ──────────────────────────────────────────────
+
+/**
+ * Hook to fetch all instructor applications (admin only).
+ * Returns the full list with applicant profile info.
+ */
+export function useAllApplications() {
+  return useQuery({
+    queryKey: ['applications'],
+    queryFn: fetchAllApplications,
+  });
+}
+
+/**
+ * Hook to approve or reject an application (admin only).
+ *
+ * On success, invalidates the applications list so the table
+ * updates immediately without a manual page refresh.
+ *
+ * Usage: reviewMutation.mutate({ id, status: 'approved' })
+ */
+export function useReviewApplication() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // mutationFn receives one argument, so we pass an object
+    // and destructure it to get id and status
+    mutationFn: ({ id, status }) => reviewApplication(id, status),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
     },
   });
 }
