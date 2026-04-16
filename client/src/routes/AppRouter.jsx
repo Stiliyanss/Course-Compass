@@ -13,6 +13,7 @@ import CourseDetailPage from '../pages/public/CourseDetailPage';
 import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
+import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
           {
             path: '/student/dashboard',
             element: <div className="text-white">Student Dashboard (coming soon)</div>,
+          },
+          {
+            path: '/student/apply-instructor',
+            element: <ApplyInstructorPage />,
           },
         ],
       },
