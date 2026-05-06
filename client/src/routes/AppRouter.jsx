@@ -15,6 +15,7 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
+import AdminUsersPage from '../pages/admin/AdminUsersPage';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
