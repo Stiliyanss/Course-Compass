@@ -73,9 +73,11 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    // Always clear local state, even if the API call fails
+    // (e.g. session already expired or user was deleted)
     setUser(null);
     setProfile(null);
+    if (error) throw error;
   }
 
   async function resetPassword(email) {
