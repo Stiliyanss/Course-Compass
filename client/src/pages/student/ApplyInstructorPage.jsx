@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 export default function ApplyInstructorPage() {
   const { data: application, isLoading } = useMyApplication();
   const submitMutation = useSubmitApplication();
+  const deleteMutation = useDeleteApplication();
 
   const [form, setForm] = useState({
     bio: '',
@@ -47,8 +48,6 @@ export default function ApplyInstructorPage() {
       </div>
     );
   }
-
-  const deleteMutation = useDeleteApplication();
 
   function handleRetry() {
     deleteMutation.mutate(application.id, {
