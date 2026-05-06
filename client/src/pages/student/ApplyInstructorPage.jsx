@@ -235,6 +235,15 @@ function ApplicationStatus({ application, onRetry, isRetrying }) {
       title: 'Application Not Approved',
       message: 'Unfortunately, your application was not approved at this time. You may contact support for more details.',
     },
+    revoked: {
+      icon: XCircle,
+      color: 'text-orange-400',
+      border: 'border-orange-400/30',
+      bg: 'bg-orange-400/10',
+      glow: 'bg-orange-500/10',
+      title: 'Instructor Status Revoked',
+      message: 'Your instructor status has been revoked by an admin. You are welcome to submit a new application if you\'d like to become an instructor again.',
+    },
   };
 
   const config = statusConfig[application.status];
@@ -270,7 +279,7 @@ function ApplicationStatus({ application, onRetry, isRetrying }) {
                 </Button>
               </Link>
             )}
-            {application.status === 'rejected' && (
+            {(application.status === 'rejected' || application.status === 'revoked') && (
               <Button className="mt-4" onClick={onRetry} loading={isRetrying}>
                 <Send className="mr-2 h-4 w-4" />
                 Apply Again
