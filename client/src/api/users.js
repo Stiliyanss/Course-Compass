@@ -25,6 +25,7 @@ export async function fetchAllUsers() {
  * @param {string} role — the new role ('student', 'instructor', or 'admin')
  */
 export async function updateUserRole(id, role) {
+  // Step 1: Update the user's role
   const { data, error } = await supabase
     .from('profiles')
     .update({ role })
@@ -33,5 +34,16 @@ export async function updateUserRole(id, role) {
     .single();
 
   if (error) throw error;
+
+  // Step 2: If demoting to student, mark their approved application as 'revoked'
+  // so they see a "Your status was revoked" message and can reapply.
+  if (role === 'student') {
+    await supabase
+      .from('instructor_applications')
+      .update({ status: 'revoked', reviewed_at: new Date().toISOString() })
+      .eq('user_id', id)
+      .eq('status', 'approved');
+  }
+
   return data;
 }
