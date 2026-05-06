@@ -108,6 +108,10 @@ const router = createBrowserRouter([
             element: <div className="text-white">Admin Dashboard (coming soon)</div>,
           },
           {
+            path: '/admin/users',
+            element: <AdminUsersPage />,
+          },
+          {
             path: '/admin/applications',
             element: <AdminApplicationsPage />,
           },
