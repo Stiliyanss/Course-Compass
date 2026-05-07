@@ -79,6 +79,8 @@ export function useReviewApplication() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      // Also refresh the users list since approving changes the user's role
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
 }
