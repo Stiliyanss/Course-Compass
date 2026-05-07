@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import AvatarUpload from '../components/AvatarUpload';
 import toast from 'react-hot-toast';
 
 export default function DashboardLayout() {
@@ -35,6 +36,7 @@ export default function DashboardLayout() {
         <header className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-6 py-4">
           {/* User info */}
           <div className="flex items-center gap-3">
+            <AvatarUpload size="sm" />
             <span className="text-sm font-medium text-white">
               {profile?.full_name || 'User'}
             </span>
