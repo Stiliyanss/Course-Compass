@@ -12,11 +12,11 @@ export default function DashboardLayout() {
   async function handleSignOut() {
     try {
       await signOut();
-      toast.success('Signed out');
-      navigate('/');
     } catch (err) {
-      toast.error(err.message || 'Failed to sign out');
+      console.error('Sign out error:', err);
     }
+    toast.success('Signed out');
+    navigate('/login', { replace: true });
   }
 
   // Capitalize first letter of role for display (e.g. "student" → "Student")
