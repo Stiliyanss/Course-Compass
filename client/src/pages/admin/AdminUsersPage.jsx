@@ -164,9 +164,17 @@ export default function AdminUsersPage() {
                   {/* User info */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-600/20 text-sm font-bold text-purple-400">
-                        {user.full_name?.charAt(0)?.toUpperCase() || '?'}
-                      </div>
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.full_name}
+                          className="h-9 w-9 rounded-full object-cover border border-slate-700"
+                        />
+                      ) : (
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-600/20 text-sm font-bold text-purple-400">
+                          {user.full_name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-white">{user.full_name || 'Unnamed'}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
