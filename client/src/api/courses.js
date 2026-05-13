@@ -90,3 +90,29 @@ export async function fetchInstructorCourses() {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Update an existing course.
+ *
+ * Only the fields passed in courseData will be updated — Supabase's
+ * .update() does a partial update (like SQL's SET), so you don't need
+ * to send every column, just the ones that changed.
+ *
+ * The RLS policy "Instructors can update own courses" checks:
+ *   instructor_id = auth.uid() OR get_user_role() = 'admin'
+ * So only the course owner (or an admin) can update it.
+ *
+ * @param {string} id — the course's UUID
+ * @param {Object} courseData — fields to update, e.g. { title, price, status }
+ */
+export async function updateCourse(id, courseData) {
+  const { data, error } = await supabase
+    .from('courses')
+    .update(courseData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
