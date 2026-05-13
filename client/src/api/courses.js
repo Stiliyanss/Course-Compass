@@ -35,6 +35,36 @@ export async function fetchCourseById(id) {
   return data;
 }
 
+
+/**
+ * Create a new course for the currently logged-in instructor.
+ *
+ * The course starts as a 'draft' by default (set in the database schema:
+ * status TEXT NOT NULL DEFAULT 'draft'). This means instructors can fill
+ * in details and upload materials before making it visible to students.
+ *
+ * The RLS policy "Instructors can create courses" checks two things:
+ *   1. instructor_id = auth.uid()  — you can only create courses for yourself
+ *   2. get_user_role() = 'instructor' — only approved instructors can create
+ *
+ * @param {Object} courseData — { title, description, price, duration, image_url }
+ */
+export async function createCourse(courseData) {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('courses')
+    .insert({
+      instructor_id: user.id,
+      ...courseData,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 /**
  * Fetch all courses belonging to the currently logged-in instructor.
  *
@@ -47,6 +77,7 @@ export async function fetchCourseById(id) {
  * The "instructor_id = auth.uid()" part is what lets instructors see their own
  * drafts and archived courses — not just published ones.
  */
+
 export async function fetchInstructorCourses() {
   const { data: { user } } = await supabase.auth.getUser();
 
