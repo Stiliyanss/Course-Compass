@@ -16,8 +16,7 @@ export default function DashboardLayout() {
     } catch (err) {
       console.error('Sign out error:', err);
     }
-    toast.success('Signed out');
-    navigate('/login', { replace: true });
+    window.location.href = '/login';
   }
 
   // Capitalize first letter of role for display (e.g. "student" → "Student")

@@ -25,7 +25,7 @@ npm run preview  # Preview production build
 - **Supabase** for database, auth, and API (`@supabase/supabase-js`)
 - **React Router v7** for routing (`createBrowserRouter`)
 - **TanStack Query (React Query)** for server state management
-- **React Hook Form + Zod** for form handling and validation (Zod installed but validators currently use plain JS)
+- **React Hook Form + Zod** for form handling and validation (validators use plain JS, not Zod)
 - **Lucide React** for icons
 - **react-hot-toast** for notifications
 - **clsx** for conditional class names
@@ -36,7 +36,7 @@ npm run preview  # Preview production build
 
 - **`client/src/main.jsx`** — entry point, wraps app in `QueryClientProvider` → `AuthProvider` → `RouterProvider` + `<Toaster />`
 - **`client/src/lib/supabaseClient.js`** — single Supabase client instance
-- **`client/src/context/AuthContext.jsx`** — provides `user`, `profile` (with role), `loading`, `signIn`, `signUp`, `signOut`, `resetPassword`
+- **`client/src/context/AuthContext.jsx`** — provides `user`, `profile` (with role), `loading`, `signIn`, `signUp`, `signOut`, `refreshProfile`, `resetPassword`
 - **`client/src/routes/AppRouter.jsx`** — all routes defined here using nested layout pattern
 - **`client/src/layouts/`** — page shells that render `<Outlet />`:
   - `PublicLayout` — Navbar + Footer (for `/`, `/courses`, etc.)
@@ -46,6 +46,9 @@ npm run preview  # Preview production build
   - `Navbar.jsx`, `Footer.jsx`, `Sidebar.jsx` — layout pieces
   - `ProtectedRoute.jsx` — role-based route guard (takes `allowedRoles` prop)
   - `BecomeInstructor.jsx` — CTA component shown to students on landing page
+  - `AvatarUpload.jsx` — clickable avatar with file picker, preview, and Supabase Storage upload
+  - `CourseCard.jsx` — course preview card for catalog grid
+  - `SearchBar.jsx` — debounced search input (400ms delay)
   - `ui/Button.jsx`, `ui/Input.jsx`, `ui/Spinner.jsx` — primitives
 - **`client/src/pages/`** — route-level components organized by section (`auth/`, `public/`, `student/`, `instructor/`, `admin/`)
 - **`client/src/api/`** — Supabase query functions (pure async, no React)
@@ -60,16 +63,16 @@ Routes are nested under layouts in `AppRouter.jsx`:
 PublicLayout        → /  /courses  /courses/:id  /forbidden
 AuthLayout          → /login  /register  /forgot-password
 ProtectedRoute + DashboardLayout:
-  student/instructor → /student/dashboard  /student/my-courses  /student/apply-instructor
-  instructor         → /instructor/dashboard  /instructor/courses
-  admin              → /admin/dashboard  /admin/users  /admin/courses  /admin/applications
+  student/instructor → /student/dashboard  /student/apply-instructor
+  instructor         → /instructor/dashboard
+  admin              → /admin/dashboard  /admin/users  /admin/applications
 ```
 
 ## Database
 
 Schema is defined in `supabase-setup.sql` at the project root. Seven tables:
 - `profiles` — linked to `auth.users`, has `role` (student/instructor/admin)
-- `instructor_applications` — students apply, admin approves/rejects
+- `instructor_applications` — students apply, admin approves/rejects/revokes
 - `courses` — instructor_id, title, description, price, duration, status (draft/published/archived)
 - `course_materials` — files attached to courses (PDF, ZIP, etc.)
 - `enrollments` — student ↔ course with payment_status
@@ -77,6 +80,8 @@ Schema is defined in `supabase-setup.sql` at the project root. Seven tables:
 - `payments` — Stripe payment records
 
 A trigger (`handle_new_user`) auto-creates a profile row on signup with `role = 'student'`. RLS policies enforce access control at the database level.
+
+**Storage buckets**: `course-images` (public), `course-materials` (private), `avatars` (public — profile photos).
 
 ## Design System
 

@@ -15,8 +15,7 @@ export default function Navbar() {
     } catch (err) {
       console.error('Sign out error:', err);
     }
-    toast.success('Signed out');
-    navigate('/login', { replace: true });
+    window.location.href = '/login';
   }
 
   return (

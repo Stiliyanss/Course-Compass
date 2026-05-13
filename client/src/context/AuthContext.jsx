@@ -23,26 +23,35 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).then((p) => {
-          setProfile(p);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
-
+    // Use onAuthStateChange as the single source of truth.
+    // INITIAL_SESSION fires first on page load with the existing session.
+    // SIGNED_IN fires after login.
+    // SIGNED_OUT fires after logout.
+    // TOKEN_REFRESHED fires periodically — we only update the user object,
+    // not the profile (avoids race conditions that set profile to null).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          const p = await fetchProfile(session.user.id);
-          setProfile(p);
-        } else {
+      (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
           setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        if (session?.user) {
+          setUser(session.user);
+          // Set loading false immediately so the app doesn't get stuck
+          // if the profile fetch is slow or hangs
+          setLoading(false);
+
+          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+            // Fetch profile in the background — don't block loading
+            fetchProfile(session.user.id).then((p) => {
+              if (p) setProfile(p);
+            });
+          }
+        } else {
+          setLoading(false);
         }
       }
     );
@@ -72,8 +81,6 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    // scope: 'local' ensures the session is cleared from this browser
-    // even if the server-side revocation fails
     await supabase.auth.signOut({ scope: 'local' });
     setUser(null);
     setProfile(null);
@@ -82,7 +89,7 @@ export function AuthProvider({ children }) {
   async function refreshProfile() {
     if (user) {
       const p = await fetchProfile(user.id);
-      setProfile(p);
+      if (p) setProfile(p);
     }
   }
 
