@@ -116,3 +116,27 @@ export async function updateCourse(id, courseData) {
   if (error) throw error;
   return data;
 }
+
+/**
+ * Delete a course permanently.
+ *
+ * This removes the course row from the database. Because of ON DELETE CASCADE
+ * in the schema, all related rows are automatically deleted too:
+ *   - course_materials (files attached to this course)
+ *   - enrollments (students enrolled in this course)
+ *   - material_progress (student progress on this course's materials)
+ *   - payments (payment records for this course)
+ *
+ * The RLS policy "Instructors can delete own courses" checks:
+ *   instructor_id = auth.uid() OR get_user_role() = 'admin'
+ *
+ * @param {string} id — the course's UUID
+ */
+export async function deleteCourse(id) {
+  const { error } = await supabase
+    .from('courses')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
