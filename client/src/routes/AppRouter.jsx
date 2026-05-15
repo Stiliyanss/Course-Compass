@@ -14,6 +14,7 @@ import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
+import MyCoursesPage from '../pages/student/MyCoursesPage';
 import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
           {
             path: '/student/dashboard',
             element: <div className="text-white">Student Dashboard (coming soon)</div>,
+          },
+          {
+            path: '/student/my-courses',
+            element: <MyCoursesPage />,
           },
           {
             path: '/student/apply-instructor',
