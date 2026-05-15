@@ -1,13 +1,41 @@
 import { supabase } from '../lib/supabaseClient';
 
 /**
+ * Upload a course image to Supabase Storage.
+ *
+ * File is stored as: course-images/{courseId}.{extension}
+ * Using the courseId means each course has one image that gets
+ * overwritten on re-upload — no orphaned files.
+ *
+ * @param {File} file — the image file from a file picker
+ * @param {string} courseId — the course's UUID (used as filename)
+ * @returns {string} — the public URL of the uploaded image
+ */
+export async function uploadCourseImage(file, courseId) {
+  const ext = file.name.split('.').pop();
+  const filePath = `${courseId}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from('course-images')
+    .upload(filePath, file, { upsert: true });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('course-images')
+    .getPublicUrl(filePath);
+
+  return `${publicUrl}?t=${Date.now()}`;
+}
+
+/**
  * Fetch published courses, optionally filtered by search term.
  * Joins the instructor's profile to get their name.
  */
 export async function fetchCourses(filters = {}) {
   let query = supabase
     .from('courses')
-    .select('*, instructor:profiles(id, full_name, avatar_url)')       
+    .select('*')
     .eq('status', 'published')
     .order('created_at', { ascending: false });
 
@@ -15,9 +43,23 @@ export async function fetchCourses(filters = {}) {
     query = query.ilike('title', `%${filters.search}%`);
   }
 
-  const { data, error } = await query;
+  const { data: courses, error } = await query;
   if (error) throw error;
-  return data;
+
+  // Fetch instructor profiles separately to avoid RLS join issues
+  const instructorIds = [...new Set(courses.map((c) => c.instructor_id))];
+  if (instructorIds.length === 0) return courses;
+
+  const { data: instructors } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', instructorIds);
+
+  // Attach each instructor to their course
+  return courses.map((course) => ({
+    ...course,
+    instructor: instructors?.find((i) => i.id === course.instructor_id) || null,
+  }));
 }
 
 /**
@@ -25,14 +67,24 @@ export async function fetchCourses(filters = {}) {
  * Includes the instructor's profile info.
  */
 export async function fetchCourseById(id) {
-  const { data, error } = await supabase
+  // Fetch the course without joining profiles
+  // (the profile join causes RLS-related hangs)
+  const { data: course, error } = await supabase
     .from('courses')
-    .select('*, instructor:profiles(id, full_name, avatar_url, bio)')
+    .select('*')
     .eq('id', id)
     .single();
 
   if (error) throw error;
-  return data;
+
+  // Fetch the instructor's profile separately
+  const { data: instructor } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, bio')
+    .eq('id', course.instructor_id)
+    .single();
+
+  return { ...course, instructor };
 }
 
 
