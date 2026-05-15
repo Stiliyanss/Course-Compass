@@ -17,6 +17,7 @@ import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
 import MyCoursesPage from '../pages/student/MyCoursesPage';
 import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
+import ManageSectionsPage from '../pages/instructor/ManageSectionsPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 import AdminUsersPage from '../pages/admin/AdminUsersPage';
 
@@ -109,6 +110,10 @@ const router = createBrowserRouter([
           {
             path: '/instructor/courses/:id/edit',
             element: <CourseFormPage />,
+          },
+          {
+            path: '/instructor/courses/:id/content',
+            element: <ManageSectionsPage />,
           },
         ],
       },
