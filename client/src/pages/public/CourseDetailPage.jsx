@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCourse } from '../../hooks/useCourses';
 import { useSections } from '../../hooks/useSections';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File } from 'lucide-react';
+import { useEnrollmentCheck } from '../../hooks/useEnrollments';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 
@@ -15,6 +16,10 @@ export default function CourseDetailPage() {
 
   // Fetch sections & materials for the course content preview
   const { data: sections = [] } = useSections(id);
+
+  // Check if the current user is enrolled in this course
+  // Returns true/false — controls whether download buttons appear
+  const { data: isEnrolled = false } = useEnrollmentCheck(id);
 
   if (isLoading) {
     return (
@@ -110,7 +115,7 @@ export default function CourseDetailPage() {
               </p>
               <div className="space-y-2">
                 {sections.map((section) => (
-                  <SectionPreview key={section.id} section={section} />
+                  <SectionPreview key={section.id} section={section} isEnrolled={isEnrolled} />
                 ))}
               </div>
             </div>
@@ -202,7 +207,7 @@ function getMaterialIcon(fileType) {
  * This is a "preview" — no download links. Students can see what's
  * inside each section before purchasing the course.
  */
-function SectionPreview({ section }) {
+function SectionPreview({ section, isEnrolled }) {
   const [open, setOpen] = useState(false);
   const materialCount = section.materials?.length || 0;
 
@@ -234,10 +239,25 @@ function SectionPreview({ section }) {
             return (
               <div
                 key={material.id}
-                className="flex items-center gap-3 py-2 text-sm text-gray-400"
+                className="flex items-center justify-between py-2 text-sm text-gray-400"
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{material.title}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{material.title}</span>
+                </div>
+
+                {/* Show download button if enrolled, lock icon if not */}
+                {isEnrolled ? (
+                  <button
+                    onClick={() => handleDownload(material.file_url, material.title)}
+                    className="flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span className="text-xs">Download</span>
+                  </button>
+                ) : (
+                  <Lock className="h-3.5 w-3.5 text-gray-600" />
+                )}
               </div>
             );
           })}

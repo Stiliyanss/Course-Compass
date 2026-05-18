@@ -12,6 +12,32 @@ import { supabase } from '../lib/supabaseClient';
  * RLS policy "Students can view own enrollments" ensures
  * students can only see their own enrollments (student_id = auth.uid()).
  */
+/**
+ * Check if the current user is enrolled in a specific course.
+ *
+ * Returns true if there is an enrollment row where
+ * student_id = current user AND course_id = the given course.
+ * Returns false if not logged in or not enrolled.
+ */
+export async function checkEnrollment(courseId) {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Not logged in — can't be enrolled
+  if (!user) return false;
+
+  const { data, error } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('student_id', user.id)
+    .eq('course_id', courseId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  // If data is not null, the student is enrolled
+  return !!data;
+}
+
 export async function fetchMyEnrollments() {
   const { data: { user } } = await supabase.auth.getUser();
 
