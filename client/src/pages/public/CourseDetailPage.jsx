@@ -160,11 +160,18 @@ export default function CourseDetailPage() {
               </span>
             </div>
 
-            {/* Buy button — wired up in Phase 5 with Stripe */}
-            <Button className="w-full" size="lg">
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              {Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course'}
-            </Button>
+            {/* Buy button or enrolled badge */}
+            {isEnrolled ? (
+              <div className="flex items-center justify-center gap-2 rounded-lg bg-green-500/10 border border-green-500/30 py-3 text-green-400 font-medium">
+                <BookOpen className="h-5 w-5" />
+                You are enrolled
+              </div>
+            ) : (
+              <Button className="w-full" size="lg">
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course'}
+              </Button>
+            )}
 
             {/* Course details list */}
             <div className="space-y-3 border-t border-slate-800 pt-5">
@@ -178,7 +185,7 @@ export default function CourseDetailPage() {
                 <span className="text-gray-400">Materials</span>
                 <span className="flex items-center gap-1 text-white">
                   <BookOpen className="h-3.5 w-3.5" />
-                  Available after purchase
+                  {isEnrolled ? 'Available below' : 'Available after purchase'}
                 </span>
               </div>
             </div>

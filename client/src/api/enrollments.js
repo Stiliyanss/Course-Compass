@@ -30,6 +30,7 @@ export async function checkEnrollment(courseId) {
     .select('id')
     .eq('student_id', user.id)
     .eq('course_id', courseId)
+    .eq('payment_status', 'completed')
     .maybeSingle();
 
   if (error) throw error;
