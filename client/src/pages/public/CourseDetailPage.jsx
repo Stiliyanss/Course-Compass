@@ -4,8 +4,10 @@ import { useCourse } from '../../hooks/useCourses';
 import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
 import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
+import toast from 'react-hot-toast';
 
 export default function CourseDetailPage() {
   // useParams extracts the :id from the URL /courses/:id
@@ -185,6 +187,39 @@ export default function CourseDetailPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * Download a file from the private course-materials bucket.
+ *
+ * Since the bucket is private, we can't just link to a public URL.
+ * Instead, we use Supabase's createSignedUrl() which generates a
+ * temporary URL (valid for 60 seconds) that grants access to the file.
+ *
+ * Steps:
+ * 1. Ask Supabase for a signed URL for this file path
+ * 2. Create a temporary <a> element with the signed URL
+ * 3. Click it programmatically to trigger the browser download
+ * 4. Clean up the temporary element
+ */
+async function handleDownload(filePath, title) {
+  try {
+    const { data, error } = await supabase.storage
+      .from('course-materials')
+      .createSignedUrl(filePath, 60); // URL valid for 60 seconds
+
+    if (error) throw error;
+
+    // Create a temporary link and click it to trigger download
+    const link = document.createElement('a');
+    link.href = data.signedUrl;
+    link.download = title; // Suggests this filename to the browser
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    toast.error('Download failed: ' + err.message);
+  }
 }
 
 /**
