@@ -141,9 +141,6 @@ export default function CourseDetailPage() {
                 )}
                 <div>
                   <p className="font-semibold text-white">{course.instructor.full_name}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-gray-400">
-                    {course.instructor.bio || 'No bio available.'}
-                  </p>
                 </div>
               </div>
             </div>

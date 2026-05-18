@@ -78,11 +78,13 @@ export async function fetchCourseById(id) {
   if (error) throw error;
 
   // Fetch the instructor's profile separately
-  const { data: instructor } = await supabase
+  const { data: instructor, error: profileError } = await supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, bio')
+    .select('id, full_name, avatar_url')
     .eq('id', course.instructor_id)
-    .single();
+    .maybeSingle();
+
+  if (profileError) console.error('Instructor profile fetch error:', profileError);
 
   return { ...course, instructor };
 }
