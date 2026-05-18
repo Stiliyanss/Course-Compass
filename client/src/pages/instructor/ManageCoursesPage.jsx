@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInstructorCourses, useDeleteCourse, useUpdateCourse } from '../../hooks/useCourses';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -219,6 +219,14 @@ function CourseRow({
               Republish
             </Button>
           )}
+
+          {/* Content (sections & materials) */}
+          <Link to={`/instructor/courses/${course.id}/content`}>
+            <Button variant="ghost" className="text-xs px-3 py-1 gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Content
+            </Button>
+          </Link>
 
           {/* Edit */}
           <Link to={`/instructor/courses/${course.id}/edit`}>
