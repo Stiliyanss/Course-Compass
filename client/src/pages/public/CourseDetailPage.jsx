@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCourse } from '../../hooks/useCourses';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart } from 'lucide-react';
+import { useSections } from '../../hooks/useSections';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 
@@ -10,6 +12,9 @@ export default function CourseDetailPage() {
 
   // Fetch the course data including instructor profile
   const { data: course, isLoading, isError, error } = useCourse(id);
+
+  // Fetch sections & materials for the course content preview
+  const { data: sections = [] } = useSections(id);
 
   if (isLoading) {
     return (
@@ -95,6 +100,22 @@ export default function CourseDetailPage() {
             </p>
           </div>
 
+          {/* Course Content — section list as a table of contents */}
+          {sections.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-xl font-semibold text-white">Course Content</h2>
+              <p className="mb-4 text-sm text-gray-400">
+                {sections.length} {sections.length === 1 ? 'section' : 'sections'} &middot;{' '}
+                {sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0)} materials
+              </p>
+              <div className="space-y-2">
+                {sections.map((section) => (
+                  <SectionPreview key={section.id} section={section} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Instructor card */}
           {course.instructor && (
             <div>
@@ -157,6 +178,71 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * A helper that returns the right icon for a file type.
+ * Videos get a Video icon, everything else gets FileText or generic File.
+ */
+function getMaterialIcon(fileType) {
+  const videoTypes = ['mp4', 'webm', 'mov', 'avi'];
+  const docTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'];
+
+  if (videoTypes.includes(fileType)) return Video;
+  if (docTypes.includes(fileType)) return FileText;
+  return File;
+}
+
+/**
+ * SectionPreview — a collapsible section that shows material names.
+ * Clicking the section header toggles the material list open/closed.
+ *
+ * This is a "preview" — no download links. Students can see what's
+ * inside each section before purchasing the course.
+ */
+function SectionPreview({ section }) {
+  const [open, setOpen] = useState(false);
+  const materialCount = section.materials?.length || 0;
+
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-900/50 overflow-hidden">
+      {/* Section header — click to expand/collapse */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-800/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          {open ? (
+            <ChevronDown className="h-4 w-4 text-purple-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-gray-500" />
+          )}
+          <span className="font-medium text-white">{section.title}</span>
+        </div>
+        <span className="text-xs text-gray-500">
+          {materialCount} {materialCount === 1 ? 'material' : 'materials'}
+        </span>
+      </button>
+
+      {/* Material list — only visible when expanded */}
+      {open && materialCount > 0 && (
+        <div className="border-t border-slate-800 px-4 py-2">
+          {section.materials.map((material) => {
+            const Icon = getMaterialIcon(material.file_type);
+            return (
+              <div
+                key={material.id}
+                className="flex items-center gap-3 py-2 text-sm text-gray-400"
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{material.title}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
