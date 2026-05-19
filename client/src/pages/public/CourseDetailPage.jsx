@@ -3,10 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { useCourse } from '../../hooks/useCourses';
 import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock } from 'lucide-react';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
+import MaterialPreview from '../../components/MaterialPreview';
 import toast from 'react-hot-toast';
 
 export default function CourseDetailPage() {
@@ -22,6 +23,29 @@ export default function CourseDetailPage() {
   // Check if the current user is enrolled in this course
   // Returns true/false — controls whether download buttons appear
   const { data: isEnrolled = false } = useEnrollmentCheck(id);
+
+  // State for the material preview modal
+  // When a student clicks a material, we store the material object + its signed URL
+  // Setting this to null closes the modal
+  const [preview, setPreview] = useState(null); // { material, signedUrl }
+
+  // Opens the preview modal for a material
+  // 1. Gets a signed URL from Supabase (valid for 5 minutes)
+  // 2. Stores both the material info and the URL in state
+  // 3. This triggers the MaterialPreview modal to render
+  async function handlePreview(material) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('course-materials')
+        .createSignedUrl(material.file_url, 300); // 5 minutes — enough for Google Docs Viewer
+
+      if (error) throw error;
+
+      setPreview({ material, signedUrl: data.signedUrl });
+    } catch (err) {
+      toast.error('Failed to load preview: ' + err.message);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -117,7 +141,12 @@ export default function CourseDetailPage() {
               </p>
               <div className="space-y-2">
                 {sections.map((section) => (
-                  <SectionPreview key={section.id} section={section} isEnrolled={isEnrolled} />
+                  <SectionPreview
+                    key={section.id}
+                    section={section}
+                    isEnrolled={isEnrolled}
+                    onPreview={handlePreview}
+                  />
                 ))}
               </div>
             </div>
@@ -189,6 +218,14 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </div>
+      {/* Preview modal — rendered when a student clicks a material */}
+      {preview && (
+        <MaterialPreview
+          material={preview.material}
+          signedUrl={preview.signedUrl}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }
@@ -246,7 +283,7 @@ function getMaterialIcon(fileType) {
  * This is a "preview" — no download links. Students can see what's
  * inside each section before purchasing the course.
  */
-function SectionPreview({ section, isEnrolled }) {
+function SectionPreview({ section, isEnrolled, onPreview }) {
   const [open, setOpen] = useState(false);
   const materialCount = section.materials?.length || 0;
 
@@ -280,20 +317,40 @@ function SectionPreview({ section, isEnrolled }) {
                 key={material.id}
                 className="flex items-center justify-between py-2 text-sm text-gray-400"
               >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span>{material.title}</span>
-                </div>
-
-                {/* Show download button if enrolled, lock icon if not */}
+                {/* Material name — clickable for enrolled students to open preview */}
                 {isEnrolled ? (
                   <button
-                    onClick={() => handleDownload(material.file_url, material.title)}
-                    className="flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
+                    onClick={() => onPreview(material)}
+                    className="flex items-center gap-3 hover:text-white transition-colors"
                   >
-                    <Download className="h-4 w-4" />
-                    <span className="text-xs">Download</span>
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{material.title}</span>
                   </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{material.title}</span>
+                  </div>
+                )}
+
+                {/* Right side — preview/download buttons if enrolled, lock if not */}
+                {isEnrolled ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => onPreview(material)}
+                      className="flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="text-xs">Preview</span>
+                    </button>
+                    <button
+                      onClick={() => handleDownload(material.file_url, material.title)}
+                      className="flex items-center gap-1 text-gray-400 hover:text-gray-300 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="text-xs">Download</span>
+                    </button>
+                  </div>
                 ) : (
                   <Lock className="h-3.5 w-3.5 text-gray-600" />
                 )}
