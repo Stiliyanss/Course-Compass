@@ -119,6 +119,18 @@ export default function MaterialPreview({ material, signedUrl, onClose }) {
             />
           )}
 
+          {isOffice && (
+            // Google Docs Viewer renders Office files (Word, PowerPoint, Excel)
+            // It fetches the file from our signed URL and converts it to HTML
+            // The signed URL works because it's a regular HTTPS link that
+            // Google's servers can access during the validity period
+            <iframe
+              src={googleViewerUrl}
+              title={material.title}
+              className="h-[75vh] w-full rounded-lg border border-slate-800"
+            />
+          )}
+
           {!canPreview && (
             // For file types we can't preview (docx, pptx, zip, etc.)
             // Show a message and encourage downloading instead
