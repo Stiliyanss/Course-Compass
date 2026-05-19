@@ -10,7 +10,8 @@ import Button from './ui/Button';
  *     - Videos (mp4, webm, mov) → HTML5 <video> player
  *     - PDFs → <iframe> using the browser's built-in PDF viewer
  *     - Images (jpg, png, gif, webp) → <img> tag
- *     - Unsupported types (docx, pptx, etc.) → "preview not available" message
+ *     - Office files (docx, pptx, xlsx) → Google Docs Viewer in an iframe
+ *     - Unsupported types (zip, etc.) → "preview not available" message
  * - The modal has a dark backdrop with blur effect
  * - Click the X button or press Escape to close
  * - A download button is always available as a fallback
@@ -25,6 +26,10 @@ import Button from './ui/Button';
 const VIDEO_TYPES = ['mp4', 'webm', 'mov'];
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 const PDF_TYPES = ['pdf'];
+// Office file types — previewed via Google Docs Viewer
+// Google Docs Viewer can render these in an iframe by passing the file URL
+// Format: https://docs.google.com/gview?url=ENCODED_URL&embedded=true
+const OFFICE_TYPES = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
 
 export default function MaterialPreview({ material, signedUrl, onClose }) {
   const type = material.file_type?.toLowerCase();
@@ -32,7 +37,14 @@ export default function MaterialPreview({ material, signedUrl, onClose }) {
   const isVideo = VIDEO_TYPES.includes(type);
   const isImage = IMAGE_TYPES.includes(type);
   const isPdf = PDF_TYPES.includes(type);
-  const canPreview = isVideo || isImage || isPdf;
+  const isOffice = OFFICE_TYPES.includes(type);
+  const canPreview = isVideo || isImage || isPdf || isOffice;
+
+  // Google Docs Viewer URL — takes any public URL and renders it
+  // encodeURIComponent ensures special characters in the signed URL don't break it
+  const googleViewerUrl = isOffice
+    ? `https://docs.google.com/gview?url=${encodeURIComponent(signedUrl)}&embedded=true`
+    : null;
 
   // Close on Escape key press
   function handleKeyDown(e) {
