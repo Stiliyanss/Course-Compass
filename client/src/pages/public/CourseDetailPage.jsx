@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCourse } from '../../hooks/useCourses';
 import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
+import { useAuth } from '../../context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
@@ -44,6 +46,71 @@ export default function CourseDetailPage() {
       setPreview({ material, signedUrl: data.signedUrl });
     } catch (err) {
       toast.error('Failed to load preview: ' + err.message);
+    }
+  }
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Loading state for the buy button so we can show a spinner
+  const [purchasing, setPurchasing] = useState(false);
+
+  /**
+   * Handles course purchase. Two paths:
+   *
+   * 1. FREE course (price = 0):
+   *    - Inserts an enrollment row directly via Supabase
+   *    - No Stripe needed — student is enrolled immediately
+   *
+   * 2. PAID course (price > 0):
+   *    - Calls our create-checkout Edge Function
+   *    - The function creates a Stripe Checkout Session
+   *    - We redirect the browser to Stripe's payment page
+   *    - After payment, Stripe's webhook creates the enrollment
+   */
+  async function handlePurchase() {
+    // Must be logged in to buy
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      if (Number(course.price) === 0) {
+        // ── Free course — enroll directly ──
+        const { error: enrollError } = await supabase
+          .from('enrollments')
+          .insert({
+            student_id: user.id,
+            course_id: id,
+            payment_status: 'completed',
+          });
+
+        if (enrollError) throw enrollError;
+
+        // Refresh the enrollment check so the UI updates immediately
+        queryClient.invalidateQueries({ queryKey: ['enrollment-check', id] });
+        toast.success('Enrolled successfully!');
+      } else {
+        // ── Paid course — redirect to Stripe Checkout ──
+        // Call our Edge Function which creates a Stripe Checkout Session
+        const { data: sessionData, error: sessionError } = await supabase.functions
+          .invoke('create-checkout', {
+            body: { courseId: id },
+          });
+
+        if (sessionError) throw sessionError;
+        if (!sessionData?.url) throw new Error('No checkout URL returned');
+
+        // Redirect to Stripe's hosted payment page
+        window.location.href = sessionData.url;
+      }
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setPurchasing(false);
     }
   }
 
