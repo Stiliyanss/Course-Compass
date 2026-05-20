@@ -260,7 +260,7 @@ export default function CourseDetailPage() {
                 You are enrolled
               </div>
             ) : (
-              <Button className="w-full" size="lg">
+              <Button className="w-full" size="lg" onClick={handlePurchase} loading={purchasing}>
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course'}
               </Button>
