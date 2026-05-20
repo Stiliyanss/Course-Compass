@@ -31,7 +31,7 @@ const PDF_TYPES = ['pdf'];
 // Format: https://docs.google.com/gview?url=ENCODED_URL&embedded=true
 const OFFICE_TYPES = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
 
-export default function MaterialPreview({ material, signedUrl, 1onClose }) {
+export default function MaterialPreview({ material, signedUrl, onClose }) {
   const type = material.file_type?.toLowerCase();
 
   const isVideo = VIDEO_TYPES.includes(type);
