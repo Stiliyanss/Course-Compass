@@ -10,6 +10,7 @@ import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/public/LandingPage';
 import CourseCatalogPage from '../pages/public/CourseCatalogPage';
 import CourseDetailPage from '../pages/public/CourseDetailPage';
+import PaymentSuccessPage from '../pages/public/PaymentSuccessPage';
 import PublicLayout from '../layouts/PublicLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: '/courses/:id',
         element: <CourseDetailPage />,
+      },
+      {
+        path: '/payment/success',
+        element: <PaymentSuccessPage />,
       },
       {
         path: '/forbidden',
