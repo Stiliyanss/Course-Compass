@@ -5,7 +5,7 @@ import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
 import { useAuth } from '../../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, StickyNote, Save } from 'lucide-react';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X } from 'lucide-react';
 import { useNotes, useSaveNote } from '../../hooks/useNotes';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
@@ -466,40 +466,98 @@ function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNot
         </div>
       )}
 
-      {/* Notes area — only visible to enrolled students when section is expanded */}
+      {/* Notebook button — only visible to enrolled students when section is expanded */}
       {open && isEnrolled && (
         <div className="border-t border-slate-800 px-4 py-3">
-          {/* Toggle button to show/hide notes */}
-          <button
-            onClick={() => setShowNotes(!showNotes)}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            <StickyNote className="h-4 w-4" />
-            <span>{showNotes ? 'Hide Notes' : 'My Notes'}</span>
-            {/* Show a dot indicator if there's saved content */}
-            {noteContent && !showNotes && (
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
-            )}
-          </button>
-
-          {showNotes && (
-            <div className="mt-3 space-y-2">
-              <textarea
-                value={note}
-                onChange={handleNoteChange}
-                placeholder="Write your notes for this section..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-y min-h-[100px]"
-              />
-              {hasChanges && (
-                <button
-                  onClick={handleSaveNote}
-                  disabled={onSaveNote.isPending}
-                  className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-500 transition-colors disabled:opacity-50"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  {onSaveNote.isPending ? 'Saving...' : 'Save Note'}
-                </button>
+          {!showNotes ? (
+            // Notebook toggle button — looks like a small notebook
+            <button
+              onClick={() => setShowNotes(true)}
+              className="group relative flex items-center gap-3 rounded-lg border border-slate-700/50 bg-gradient-to-r from-slate-800/80 to-slate-800/40 px-4 py-2.5 transition-all hover:border-purple-500/40 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)]"
+            >
+              {/* Notebook icon with glow effect on hover */}
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-purple-500/10 text-purple-400 transition-colors group-hover:bg-purple-500/20">
+                <NotebookPen className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                  My Notebook
+                </span>
+                <p className="text-xs text-gray-500">
+                  {noteContent ? 'View your notes' : 'Add notes for this section'}
+                </p>
+              </div>
+              {/* Indicator dot if notes exist */}
+              {noteContent && (
+                <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.6)]" />
               )}
+            </button>
+          ) : (
+            // Expanded notebook — futuristic card with glowing border
+            <div className="relative rounded-xl border border-purple-500/20 bg-gradient-to-b from-slate-800/90 to-slate-900/90 overflow-hidden shadow-[0_0_20px_rgba(168,85,247,0.05)]">
+              {/* Decorative top glow line */}
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+
+              {/* Notebook header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-purple-500/15">
+                    <NotebookPen className="h-3.5 w-3.5 text-purple-400" />
+                  </div>
+                  <span className="text-sm font-semibold text-purple-300">Notebook</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Save button — glowing when there are changes */}
+                  {hasChanges && (
+                    <button
+                      onClick={handleSaveNote}
+                      disabled={onSaveNote.isPending}
+                      className="flex items-center gap-1.5 rounded-lg bg-purple-600/80 px-3 py-1.5 text-xs font-medium text-white shadow-[0_0_10px_rgba(168,85,247,0.3)] transition-all hover:bg-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] disabled:opacity-50"
+                    >
+                      <Save className="h-3 w-3" />
+                      {onSaveNote.isPending ? 'Saving...' : 'Save'}
+                    </button>
+                  )}
+                  {/* Close button */}
+                  <button
+                    onClick={() => setShowNotes(false)}
+                    className="rounded-md p-1 text-gray-500 hover:bg-slate-700/50 hover:text-gray-300 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Notebook writing area — styled like a notebook page */}
+              <div className="relative px-4 py-3">
+                {/* Faint vertical line on the left like a ruled notebook */}
+                <div className="absolute left-10 top-0 bottom-0 w-px bg-purple-500/10" />
+
+                <textarea
+                  value={note}
+                  onChange={handleNoteChange}
+                  placeholder="Start writing your notes..."
+                  className="w-full resize-y rounded-lg border-0 bg-transparent pl-8 pr-2 py-1 text-sm leading-7 text-gray-200 placeholder-gray-600 focus:outline-none min-h-[140px]"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, rgba(148, 163, 184, 0.06) 27px, rgba(148, 163, 184, 0.06) 28px)',
+                  }}
+                />
+              </div>
+
+              {/* Notebook footer — subtle status info */}
+              <div className="flex items-center justify-between border-t border-slate-700/30 px-4 py-2">
+                <span className="text-[11px] text-gray-600">
+                  {note.length > 0
+                    ? `${note.trim().split(/\s+/).filter(Boolean).length} words · ${note.length} chars`
+                    : 'Empty'}
+                </span>
+                {hasChanges && (
+                  <span className="flex items-center gap-1 text-[11px] text-amber-500/70">
+                    <span className="h-1 w-1 rounded-full bg-amber-500/70" />
+                    Unsaved changes
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
