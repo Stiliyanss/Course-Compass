@@ -5,7 +5,8 @@ import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
 import { useAuth } from '../../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, StickyNote, Save } from 'lucide-react';
+import { useNotes, useSaveNote } from '../../hooks/useNotes';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -25,6 +26,10 @@ export default function CourseDetailPage() {
   // Check if the current user is enrolled in this course
   // Returns true/false — controls whether download buttons appear
   const { data: isEnrolled = false } = useEnrollmentCheck(id);
+
+  // Fetch the student's notes for this course (only if enrolled)
+  const { data: notes = {} } = useNotes(isEnrolled ? id : null);
+  const saveNoteMutation = useSaveNote(id);
 
   // State for the material preview modal
   // When a student clicks a material, we store the material object + its signed URL
@@ -213,6 +218,8 @@ export default function CourseDetailPage() {
                     section={section}
                     isEnrolled={isEnrolled}
                     onPreview={handlePreview}
+                    noteContent={notes[section.id] || ''}
+                    onSaveNote={saveNoteMutation}
                   />
                 ))}
               </div>
@@ -350,9 +357,41 @@ function getMaterialIcon(fileType) {
  * This is a "preview" — no download links. Students can see what's
  * inside each section before purchasing the course.
  */
-function SectionPreview({ section, isEnrolled, onPreview }) {
+function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNote }) {
   const [open, setOpen] = useState(false);
   const materialCount = section.materials?.length || 0;
+
+  // Local state for the note text — initialized from saved content
+  // We keep a local copy so typing is instant (no waiting for server)
+  const [note, setNote] = useState(noteContent);
+  // Track whether the note has unsaved changes
+  const [hasChanges, setHasChanges] = useState(false);
+  // Toggle notes area visibility
+  const [showNotes, setShowNotes] = useState(false);
+
+  // Update local state when saved content changes (e.g. on first load)
+  // This runs when noteContent prop changes (data arrives from server)
+  if (noteContent !== note && !hasChanges) {
+    setNote(noteContent);
+  }
+
+  function handleNoteChange(e) {
+    setNote(e.target.value);
+    setHasChanges(true);
+  }
+
+  function handleSaveNote() {
+    onSaveNote.mutate(
+      { sectionId: section.id, content: note },
+      {
+        onSuccess: () => {
+          setHasChanges(false);
+          toast.success('Note saved');
+        },
+        onError: (err) => toast.error('Failed to save note: ' + err.message),
+      }
+    );
+  }
 
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-900/50 overflow-hidden">
@@ -424,6 +463,45 @@ function SectionPreview({ section, isEnrolled, onPreview }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Notes area — only visible to enrolled students when section is expanded */}
+      {open && isEnrolled && (
+        <div className="border-t border-slate-800 px-4 py-3">
+          {/* Toggle button to show/hide notes */}
+          <button
+            onClick={() => setShowNotes(!showNotes)}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            <StickyNote className="h-4 w-4" />
+            <span>{showNotes ? 'Hide Notes' : 'My Notes'}</span>
+            {/* Show a dot indicator if there's saved content */}
+            {noteContent && !showNotes && (
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+            )}
+          </button>
+
+          {showNotes && (
+            <div className="mt-3 space-y-2">
+              <textarea
+                value={note}
+                onChange={handleNoteChange}
+                placeholder="Write your notes for this section..."
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-y min-h-[100px]"
+              />
+              {hasChanges && (
+                <button
+                  onClick={handleSaveNote}
+                  disabled={onSaveNote.isPending}
+                  className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-500 transition-colors disabled:opacity-50"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  {onSaveNote.isPending ? 'Saving...' : 'Save Note'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
