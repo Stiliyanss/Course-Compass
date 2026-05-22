@@ -16,6 +16,7 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
 import MyCoursesPage from '../pages/student/MyCoursesPage';
+import StudentDashboardPage from '../pages/student/StudentDashboardPage';
 import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
 import ManageSectionsPage from '../pages/instructor/ManageSectionsPage';
@@ -78,7 +79,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/student/dashboard',
-            element: <div className="text-white">Student Dashboard (coming soon)</div>,
+            element: <StudentDashboardPage />,
           },
           {
             path: '/student/my-courses',
