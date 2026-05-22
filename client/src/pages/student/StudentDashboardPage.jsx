@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useDashboardData } from '../../hooks/useDashboard';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, CheckCircle, TrendingUp, Clock, FileText, Video, File, ArrowRight, Sparkles, GraduationCap, Target } from 'lucide-react';
+import { BookOpen, CheckCircle, TrendingUp, Clock, FileText, Video, File, ArrowRight, Sparkles, GraduationCap, Target, Flame } from 'lucide-react';
 import { format } from 'date-fns';
 import Spinner from '../../components/ui/Spinner';
 
@@ -27,12 +27,13 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const { enrollments, progress, recentActivity } = data;
+  const { enrollments, progress, recentActivity, streak } = data;
 
   const totalCourses = enrollments.length;
   const totalMaterials = Object.values(progress).reduce((sum, p) => sum + p.total, 0);
   const totalCompleted = Object.values(progress).reduce((sum, p) => sum + p.completed, 0);
   const overallPercent = totalMaterials > 0 ? Math.round((totalCompleted / totalMaterials) * 100) : 0;
+  const coursesFinished = Object.values(progress).filter((p) => p.total > 0 && p.completed === p.total).length;
 
   return (
     <div className="p-6 space-y-8">
@@ -81,7 +82,17 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* ── Stats cards ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard
+          icon={Flame}
+          label="Learning Streak"
+          value={streak > 0 ? `${streak}-day` : '0 days'}
+          gradient="from-orange-600/20 to-red-900/10"
+          borderColor="border-orange-500/20"
+          iconBg="bg-orange-500/15"
+          color="text-orange-400"
+          glowColor="shadow-[0_0_15px_rgba(249,115,22,0.08)]"
+        />
         <StatCard
           icon={BookOpen}
           label="Enrolled Courses"
@@ -91,6 +102,16 @@ export default function StudentDashboardPage() {
           iconBg="bg-purple-500/15"
           color="text-purple-400"
           glowColor="shadow-[0_0_15px_rgba(168,85,247,0.08)]"
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Courses Finished"
+          value={coursesFinished}
+          gradient="from-amber-600/20 to-amber-900/10"
+          borderColor="border-amber-500/20"
+          iconBg="bg-amber-500/15"
+          color="text-amber-400"
+          glowColor="shadow-[0_0_15px_rgba(245,158,11,0.08)]"
         />
         <StatCard
           icon={CheckCircle}

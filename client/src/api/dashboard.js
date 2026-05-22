@@ -108,9 +108,56 @@ export async function fetchDashboardData() {
     });
   }
 
+  // ── 9. Learning streak — consecutive days with at least one completion ──
+  const streak = calcStreak(completedMaterials.map((m) => m.completed_at));
+
   return {
     enrollments: enrichedEnrollments,
     progress,
     recentActivity,
+    streak,
   };
+}
+
+/**
+ * Calculate a learning streak: how many consecutive days (ending today or
+ * yesterday) the student completed at least one material.
+ */
+function calcStreak(dates) {
+  if (dates.length === 0) return 0;
+
+  // Get unique days (in local timezone) sorted descending
+  const uniqueDays = [
+    ...new Set(dates.map((d) => new Date(d).toLocaleDateString())),
+  ]
+    .map((d) => new Date(d))
+    .sort((a, b) => b - a);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Streak must start from today or yesterday
+  const first = uniqueDays[0];
+  first.setHours(0, 0, 0, 0);
+  if (first < yesterday) return 0;
+
+  let streak = 1;
+  for (let i = 1; i < uniqueDays.length; i++) {
+    const curr = uniqueDays[i];
+    curr.setHours(0, 0, 0, 0);
+    const prev = uniqueDays[i - 1];
+    prev.setHours(0, 0, 0, 0);
+
+    const diff = (prev - curr) / (1000 * 60 * 60 * 24);
+    if (diff === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
 }
