@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X } from 'lucide-react';
 import { useNotes, useSaveNote } from '../../hooks/useNotes';
+import { useProgress, useToggleProgress } from '../../hooks/useProgress';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -30,6 +31,17 @@ export default function CourseDetailPage() {
   // Fetch the student's notes for this course (only if enrolled)
   const { data: notes = {} } = useNotes(isEnrolled ? id : null);
   const saveNoteMutation = useSaveNote(id);
+
+  // Fetch progress — Set of completed material IDs
+  const { data: completedSet = new Set() } = useProgress(isEnrolled ? id : null);
+  const toggleProgress = useToggleProgress(id);
+
+  // Calculate progress percentage across all sections
+  const totalMaterials = sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0);
+  const completedCount = totalMaterials > 0
+    ? sections.reduce((sum, s) => sum + (s.materials || []).filter((m) => completedSet.has(m.id)).length, 0)
+    : 0;
+  const progressPercent = totalMaterials > 0 ? Math.round((completedCount / totalMaterials) * 100) : 0;
 
   // State for the material preview modal
   // When a student clicks a material, we store the material object + its signed URL
@@ -209,8 +221,37 @@ export default function CourseDetailPage() {
               <h2 className="mb-3 text-xl font-semibold text-white">Course Content</h2>
               <p className="mb-4 text-sm text-gray-400">
                 {sections.length} {sections.length === 1 ? 'section' : 'sections'} &middot;{' '}
-                {sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0)} materials
+                {totalMaterials} materials
               </p>
+
+              {/* Progress bar — only shown to enrolled students */}
+              {isEnrolled && totalMaterials > 0 && (
+                <div className="mb-5 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-300">Your Progress</span>
+                    <span className="text-sm font-bold text-purple-400">{progressPercent}%</span>
+                  </div>
+                  {/* Track — the background bar */}
+                  <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-800">
+                    {/* Fill — the animated progress bar */}
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-violet-400 shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all duration-500 ease-out"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                    {/* Shimmer effect — a subtle shine moving across the filled bar */}
+                    {progressPercent > 0 && progressPercent < 100 && (
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    {completedCount} of {totalMaterials} materials completed
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 {sections.map((section) => (
                   <SectionPreview
@@ -220,6 +261,8 @@ export default function CourseDetailPage() {
                     onPreview={handlePreview}
                     noteContent={notes[section.id] || ''}
                     onSaveNote={saveNoteMutation}
+                    completedSet={completedSet}
+                    onToggleProgress={toggleProgress}
                   />
                 ))}
               </div>
@@ -357,7 +400,7 @@ function getMaterialIcon(fileType) {
  * This is a "preview" — no download links. Students can see what's
  * inside each section before purchasing the course.
  */
-function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNote }) {
+function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNote, completedSet, onToggleProgress }) {
   const [open, setOpen] = useState(false);
   const materialCount = section.materials?.length || 0;
 
@@ -418,26 +461,50 @@ function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNot
         <div className="border-t border-slate-800 px-4 py-2">
           {section.materials.map((material) => {
             const Icon = getMaterialIcon(material.file_type);
+            const isCompleted = completedSet?.has(material.id);
             return (
               <div
                 key={material.id}
                 className="flex items-center justify-between py-2 text-sm text-gray-400"
               >
-                {/* Material name — clickable for enrolled students to open preview */}
-                {isEnrolled ? (
-                  <button
-                    onClick={() => onPreview(material)}
-                    className="flex items-center gap-3 hover:text-white transition-colors"
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{material.title}</span>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{material.title}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-3">
+                  {/* Checkbox — only for enrolled students */}
+                  {isEnrolled && (
+                    <button
+                      onClick={() => onToggleProgress.mutate({
+                        materialId: material.id,
+                        completed: !isCompleted,
+                      })}
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-all ${
+                        isCompleted
+                          ? 'border-purple-500 bg-purple-600 text-white shadow-[0_0_8px_rgba(168,85,247,0.3)]'
+                          : 'border-slate-600 hover:border-purple-500/50'
+                      }`}
+                    >
+                      {isCompleted && (
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Material name — clickable for enrolled students to open preview */}
+                  {isEnrolled ? (
+                    <button
+                      onClick={() => onPreview(material)}
+                      className={`flex items-center gap-3 hover:text-white transition-colors ${isCompleted ? 'line-through text-gray-500' : ''}`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span>{material.title}</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span>{material.title}</span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Right side — preview/download buttons if enrolled, lock if not */}
                 {isEnrolled ? (
