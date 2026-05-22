@@ -7,7 +7,22 @@ import {
   useDeleteSection,
   useUploadMaterial,
   useDeleteMaterial,
+  useReorderMaterials,
 } from '../../hooks/useSections';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowLeft,
   Plus,
@@ -181,12 +196,51 @@ function SectionCard({ section, courseId, sectionNumber }) {
   const deleteMutation = useDeleteSection();
   const uploadMutation = useUploadMaterial();
   const deleteMaterialMutation = useDeleteMaterial();
+  const reorderMutation = useReorderMaterials();
 
   const [isOpen, setIsOpen] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(section.title);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInputRef = useRef(null);
+
+  // dnd-kit sensor — PointerSensor with a small activation distance
+  // This prevents accidental drags when clicking buttons (delete, etc.)
+  // The user must drag at least 5px before the drag starts
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  );
+
+  /**
+   * Called when the user drops a material in a new position.
+   *
+   * How it works:
+   * 1. active = the item being dragged (has an id)
+   * 2. over = the item it was dropped on (has an id)
+   * 3. arrayMove rearranges the array — moves the item from oldIndex to newIndex
+   * 4. We save the new order to the database
+   */
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const materials = section.materials || [];
+    const oldIndex = materials.findIndex((m) => m.id === active.id);
+    const newIndex = materials.findIndex((m) => m.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Rearrange the array
+    const reordered = arrayMove(materials, oldIndex, newIndex);
+
+    // Save new positions — each item gets its array index as order_index
+    const updates = reordered.map((m, i) => ({ id: m.id, order_index: i }));
+    reorderMutation.mutate(updates, {
+      onError: (err) => toast.error('Failed to reorder: ' + err.message),
+    });
+  }
 
   function handleUpdateTitle() {
     if (!editTitle.trim() || editTitle.trim() === section.title) {
@@ -354,18 +408,29 @@ function SectionCard({ section, courseId, sectionNumber }) {
       {/* Section content — materials list + upload */}
       {isOpen && (
         <div className="px-5 py-4">
-          {/* Materials list */}
+          {/* Materials list — wrapped in drag and drop context */}
           {section.materials?.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {section.materials.map((material) => (
-                <MaterialRow
-                  key={material.id}
-                  material={material}
-                  onDelete={() => handleDeleteMaterial(material)}
-                  isDeleting={deleteMaterialMutation.isPending}
-                />
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={section.materials.map((m) => m.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2 mb-4">
+                  {section.materials.map((material) => (
+                    <SortableMaterialRow
+                      key={material.id}
+                      material={material}
+                      onDelete={() => handleDeleteMaterial(material)}
+                      isDeleting={deleteMaterialMutation.isPending}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
 
           {/* Upload button */}
@@ -402,13 +467,58 @@ function SectionCard({ section, courseId, sectionNumber }) {
   );
 }
 
-function MaterialRow({ material, onDelete, isDeleting }) {
+/**
+ * SortableMaterialRow — a material row that can be dragged to reorder.
+ *
+ * Uses @dnd-kit's useSortable hook which provides:
+ * - attributes & listeners: attach to the drag handle element
+ * - setNodeRef: attach to the row's DOM element so dnd-kit can track it
+ * - transform: the current drag offset (how far the item has moved)
+ * - transition: CSS transition for smooth animation
+ * - isDragging: true while this item is being dragged
+ */
+function SortableMaterialRow({ material, onDelete, isDeleting }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { icon: Icon, color } = getFileIcon(material.file_type);
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: material.id });
+
+  // Apply the drag transform as inline styles
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    // While dragging: raise above other items and add a glow effect
+    zIndex: isDragging ? 10 : undefined,
+    position: isDragging ? 'relative' : undefined,
+  };
+
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-800/50 px-4 py-3">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center justify-between gap-3 rounded-lg bg-slate-800/50 px-4 py-3 ${
+        isDragging
+          ? 'shadow-[0_0_15px_rgba(168,85,247,0.3)] border border-purple-500/30 bg-slate-800'
+          : ''
+      }`}
+    >
       <div className="flex items-center gap-3 min-w-0">
+        {/* Drag handle — the grip icon that the user grabs to drag */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab touch-none text-gray-600 hover:text-gray-400 transition-colors active:cursor-grabbing"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
         <Icon className={`h-5 w-5 shrink-0 ${color}`} />
         <div className="min-w-0">
           <p className="text-sm font-medium text-white truncate">{material.title}</p>
