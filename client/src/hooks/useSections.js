@@ -6,6 +6,7 @@ import {
   deleteSection,
   uploadMaterial,
   deleteMaterial,
+  reorderMaterials,
 } from '../api/sections';
 
 /**
@@ -92,6 +93,21 @@ export function useDeleteMaterial() {
 
   return useMutation({
     mutationFn: ({ id, fileUrl }) => deleteMaterial(id, fileUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sections'] });
+    },
+  });
+}
+
+/**
+ * Reorder materials within a section.
+ * Updates the order_index for each material in the database.
+ */
+export function useReorderMaterials() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reorderMaterials,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sections'] });
     },

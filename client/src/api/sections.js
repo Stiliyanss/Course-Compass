@@ -167,3 +167,28 @@ export async function deleteMaterial(id, fileUrl) {
 
   if (error) throw error;
 }
+
+/**
+ * Reorder materials within a section.
+ *
+ * Receives an array of { id, order_index } objects and updates
+ * each material's position in the database.
+ *
+ * We update each row individually because Supabase's .upsert()
+ * would require sending all columns, not just the order_index.
+ *
+ * @param {Array} items — [{ id: 'uuid', order_index: 0 }, ...]
+ */
+export async function reorderMaterials(items) {
+  const updates = items.map(({ id, order_index }) =>
+    supabase
+      .from('course_materials')
+      .update({ order_index })
+      .eq('id', id)
+  );
+
+  const results = await Promise.all(updates);
+
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
+}
