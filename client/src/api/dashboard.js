@@ -111,11 +111,21 @@ export async function fetchDashboardData() {
   // ── 9. Learning streak — consecutive days with at least one completion ──
   const streak = calcStreak(completedMaterials.map((m) => m.completed_at));
 
+  // ── 10. Weekly completions — materials completed since Monday 00:00 ──
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  monday.setHours(0, 0, 0, 0);
+  const weeklyCompleted = completedMaterials.filter(
+    (m) => new Date(m.completed_at) >= monday
+  ).length;
+
   return {
     enrollments: enrichedEnrollments,
     progress,
     recentActivity,
     streak,
+    weeklyCompleted,
   };
 }
 
