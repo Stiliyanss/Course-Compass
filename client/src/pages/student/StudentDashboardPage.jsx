@@ -1,13 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDashboardData } from '../../hooks/useDashboard';
+import { useGoal, useUpsertGoal } from '../../hooks/useGoals';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, CheckCircle, TrendingUp, Clock, FileText, Video, File, ArrowRight, Sparkles, GraduationCap, Target, Flame } from 'lucide-react';
+import { BookOpen, CheckCircle, TrendingUp, Clock, FileText, Video, File, ArrowRight, Sparkles, GraduationCap, Target, Flame, Pencil, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import Spinner from '../../components/ui/Spinner';
 
 export default function StudentDashboardPage() {
   const { profile } = useAuth();
   const { data, isLoading, isError, error } = useDashboardData();
+  const { data: goal } = useGoal();
+  const upsertGoal = useUpsertGoal();
 
   if (isLoading) {
     return (
@@ -27,7 +31,7 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const { enrollments, progress, recentActivity, streak } = data;
+  const { enrollments, progress, recentActivity, streak, weeklyCompleted } = data;
 
   const totalCourses = enrollments.length;
   const totalMaterials = Object.values(progress).reduce((sum, p) => sum + p.total, 0);
@@ -134,6 +138,13 @@ export default function StudentDashboardPage() {
           glowColor="shadow-[0_0_15px_rgba(59,130,246,0.08)]"
         />
       </div>
+
+      {/* ── Weekly Goal ── */}
+      <WeeklyGoalCard
+        weeklyCompleted={weeklyCompleted}
+        goal={goal}
+        onSave={(target) => upsertGoal.mutate(target)}
+      />
 
       {/* ── Main content grid ── */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -327,6 +338,130 @@ function StatCard({ icon: Icon, label, value, gradient, borderColor, iconBg, col
         </div>
         <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} border border-white/5`}>
           <Icon className={`h-6 w-6 ${color}`} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * WeeklyGoalCard — progress ring showing materials completed this week vs target.
+ * Students can set/edit their weekly target inline.
+ */
+function WeeklyGoalCard({ weeklyCompleted, goal, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  const target = goal?.weekly_materials_target || 0;
+  const hasGoal = target > 0;
+  const percent = hasGoal ? Math.min(Math.round((weeklyCompleted / target) * 100), 100) : 0;
+  const goalMet = hasGoal && weeklyCompleted >= target;
+
+  const handleEdit = () => {
+    setDraft(target || 5);
+    setEditing(true);
+  };
+
+  const handleSave = () => {
+    const val = Math.max(1, Math.min(100, parseInt(draft) || 5));
+    onSave(val);
+    setEditing(false);
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-cyan-600/5 blur-3xl" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+
+      <div className="relative flex items-center gap-6">
+        {/* Progress ring */}
+        <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+          <svg className="absolute h-full w-full -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="7" className="text-slate-800" />
+            {hasGoal && (
+              <circle
+                cx="50" cy="50" r="42" fill="none" strokeWidth="7" strokeLinecap="round"
+                className={goalMet ? 'text-green-400' : 'text-cyan-400'}
+                strokeDasharray={`${percent * 2.64} 264`}
+                style={{
+                  filter: `drop-shadow(0 0 6px ${goalMet ? 'rgba(34,197,94,0.5)' : 'rgba(6,182,212,0.4)'})`,
+                  transition: 'stroke-dasharray 0.8s ease',
+                }}
+                stroke="currentColor"
+              />
+            )}
+          </svg>
+          <div className="text-center">
+            {hasGoal ? (
+              <>
+                <span className={`text-xl font-bold ${goalMet ? 'text-green-400' : 'text-white'}`}>
+                  {weeklyCompleted}
+                </span>
+                <span className="text-xs text-gray-500">/{target}</span>
+              </>
+            ) : (
+              <Target className="h-6 w-6 text-gray-600" />
+            )}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <Target className="h-4 w-4 text-cyan-400" />
+            <h3 className="text-sm font-semibold text-white">Weekly Goal</h3>
+            {goalMet && (
+              <span className="rounded-full bg-green-500/10 border border-green-500/20 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                Goal reached!
+              </span>
+            )}
+          </div>
+
+          {hasGoal ? (
+            <p className="text-sm text-gray-400">
+              <span className={goalMet ? 'text-green-400 font-medium' : 'text-cyan-400 font-medium'}>
+                {weeklyCompleted} / {target} materials
+              </span>{' '}
+              completed this week
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Set a weekly target to track your learning pace
+            </p>
+          )}
+
+          {/* Edit / Set target */}
+          <div className="mt-3">
+            {editing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                  className="w-20 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-white focus:border-cyan-500 focus:outline-none"
+                  autoFocus
+                />
+                <span className="text-xs text-gray-500">materials / week</span>
+                <button
+                  onClick={handleSave}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 transition-colors"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleEdit}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
+              >
+                <Pencil className="h-3 w-3" />
+                {hasGoal ? 'Edit target' : 'Set target'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
