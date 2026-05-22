@@ -53,5 +53,10 @@ export function useToggleProgress(courseId) {
     onError: (_err, _variables, context) => {
       queryClient.setQueryData(['progress', courseId], context.previous);
     },
+
+    // After the server confirms, refresh the dashboard cache
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
