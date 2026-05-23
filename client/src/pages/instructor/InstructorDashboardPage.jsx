@@ -1,6 +1,7 @@
 import { useInstructorDashboard } from '../../hooks/useInstructorDashboard';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, BookCheck, Users, DollarSign, Sparkles, GraduationCap } from 'lucide-react';
+import { BookOpen, BookCheck, Users, DollarSign, Sparkles, GraduationCap, Clock } from 'lucide-react';
+import { format } from 'date-fns';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import Spinner from '../../components/ui/Spinner';
@@ -27,7 +28,7 @@ export default function InstructorDashboardPage() {
     );
   }
 
-  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse, revenuePerCourse } = data;
+  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse, revenuePerCourse, completionPerCourse, recentActivity } = data;
 
   return (
     <div className="p-6 space-y-8">
@@ -259,6 +260,126 @@ export default function InstructorDashboardPage() {
                 credits: { enabled: false },
               }}
             />
+          )}
+        </div>
+      </div>
+
+      {/* ── Average Completion Rate per Course ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <GraduationCap className="h-5 w-5 text-green-400" />
+            <h2 className="text-lg font-semibold text-white">Average Completion Rate</h2>
+          </div>
+
+          {completionPerCourse.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">No courses yet</p>
+          ) : (
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: 'bar',
+                  backgroundColor: 'transparent',
+                  height: Math.max(200, completionPerCourse.length * 55),
+                },
+                title: { text: null },
+                xAxis: {
+                  categories: completionPerCourse.map((c) => c.title),
+                  labels: { style: { color: '#9ca3af', fontSize: '12px' } },
+                  lineColor: '#334155',
+                  tickColor: '#334155',
+                },
+                yAxis: {
+                  min: 0,
+                  max: 100,
+                  title: { text: null },
+                  labels: {
+                    style: { color: '#6b7280', fontSize: '11px' },
+                    format: '{value}%',
+                  },
+                  gridLineColor: '#1e293b',
+                },
+                legend: {
+                  itemStyle: { color: '#d1d5db', fontSize: '13px' },
+                  itemHoverStyle: { color: '#ffffff' },
+                },
+                tooltip: {
+                  backgroundColor: '#1e293b',
+                  borderColor: '#334155',
+                  style: { color: '#e5e7eb' },
+                  pointFormat: '<b>{point.y}%</b> average completion',
+                },
+                plotOptions: {
+                  bar: {
+                    borderRadius: 4,
+                    borderWidth: 0,
+                    dataLabels: {
+                      enabled: true,
+                      format: '{y}%',
+                      style: { color: '#d1d5db', fontSize: '11px', textOutline: 'none' },
+                    },
+                  },
+                },
+                series: [{
+                  name: 'Completion',
+                  data: completionPerCourse.map((c) => c.avgCompletion),
+                  color: '#34d399',
+                }],
+                credits: { enabled: false },
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── Recent Enrollments ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-5 w-5 text-purple-400" />
+            <h2 className="text-lg font-semibold text-white">Recent Enrollments</h2>
+          </div>
+
+          {recentActivity.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">No enrollments yet</p>
+          ) : (
+            <div>
+              {recentActivity.map((item, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center gap-4 px-2 py-3 hover:bg-slate-800/30 transition-colors ${
+                    index < recentActivity.length - 1 ? 'border-b border-slate-800/50' : ''
+                  }`}
+                >
+                  {/* Avatar */}
+                  <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
+                    {item.avatarUrl ? (
+                      <img src={item.avatarUrl} alt={item.studentName} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
+                        <span className="text-sm font-bold text-purple-300">
+                          {item.studentName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white truncate">{item.studentName}</p>
+                    <p className="text-xs text-gray-500 truncate">enrolled in <span className="text-purple-400">{item.courseName}</span></p>
+                  </div>
+
+                  {/* Date */}
+                  <span className="shrink-0 text-xs text-gray-600">
+                    {format(new Date(item.enrolledAt), 'MMM d, yyyy')}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

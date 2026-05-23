@@ -53,7 +53,47 @@ export async function fetchInstructorDashboard() {
     students: enrollments.filter((e) => e.course_id === c.id).length,
   })).sort((a, b) => b.students - a.students);
 
-  // ── 5. Revenue per course ──
+  // ── 5. Average completion rate per course ──
+  // We need: total materials per course, and completed materials per enrolled student
+  let allMaterials = [];
+  let allProgress = [];
+
+  if (courseIds.length > 0) {
+    const { data: mats } = await supabase
+      .from('course_materials')
+      .select('id, course_id')
+      .in('course_id', courseIds);
+    allMaterials = mats || [];
+
+    const { data: prog } = await supabase
+      .from('material_progress')
+      .select('material_id, student_id')
+      .in('material_id', (mats || []).map((m) => m.id));
+    allProgress = prog || [];
+  }
+
+  const completionPerCourse = courses.map((c) => {
+    const courseMaterials = allMaterials.filter((m) => m.course_id === c.id);
+    const totalMats = courseMaterials.length;
+    const courseEnrollments = enrollments.filter((e) => e.course_id === c.id);
+
+    if (totalMats === 0 || courseEnrollments.length === 0) {
+      return { id: c.id, title: c.title, avgCompletion: 0 };
+    }
+
+    const matIds = new Set(courseMaterials.map((m) => m.id));
+    const studentRates = courseEnrollments.map((e) => {
+      const completed = allProgress.filter(
+        (p) => p.student_id === e.student_id && matIds.has(p.material_id)
+      ).length;
+      return (completed / totalMats) * 100;
+    });
+
+    const avg = Math.round(studentRates.reduce((s, r) => s + r, 0) / studentRates.length);
+    return { id: c.id, title: c.title, avgCompletion: avg };
+  }).sort((a, b) => b.avgCompletion - a.avgCompletion);
+
+  // ── 6. Revenue per course ──
   const revenuePerCourse = courses.map((c) => ({
     id: c.id,
     title: c.title,
@@ -62,6 +102,31 @@ export async function fetchInstructorDashboard() {
       .reduce((sum, p) => sum + (p.amount || 0), 0),
   })).sort((a, b) => b.revenue - a.revenue);
 
+  // ── 7. Recent enrollments — last 5 with student names ──
+  const recentEnrollments = [...enrollments]
+    .sort((a, b) => new Date(b.enrolled_at) - new Date(a.enrolled_at))
+    .slice(0, 5);
+
+  let recentActivity = [];
+  if (recentEnrollments.length > 0) {
+    const studentIds = [...new Set(recentEnrollments.map((e) => e.student_id))];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', studentIds);
+
+    recentActivity = recentEnrollments.map((e) => {
+      const profile = profiles?.find((p) => p.id === e.student_id);
+      const course = courses.find((c) => c.id === e.course_id);
+      return {
+        studentName: profile?.full_name || 'Unknown student',
+        avatarUrl: profile?.avatar_url || null,
+        courseName: course?.title || 'Unknown course',
+        enrolledAt: e.enrolled_at,
+      };
+    });
+  }
+
   return {
     totalCourses,
     publishedCourses,
@@ -69,5 +134,7 @@ export async function fetchInstructorDashboard() {
     totalRevenue,
     studentsPerCourse,
     revenuePerCourse,
+    completionPerCourse,
+    recentActivity,
   };
 }
