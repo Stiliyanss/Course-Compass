@@ -1,6 +1,8 @@
 import { useInstructorDashboard } from '../../hooks/useInstructorDashboard';
 import { useAuth } from '../../context/AuthContext';
 import { BookOpen, BookCheck, Users, DollarSign, Sparkles, GraduationCap } from 'lucide-react';
+import Highcharts from 'highcharts';
+import { HighchartsReact } from 'highcharts-react-official';
 import Spinner from '../../components/ui/Spinner';
 
 export default function InstructorDashboardPage() {
@@ -25,7 +27,7 @@ export default function InstructorDashboardPage() {
     );
   }
 
-  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue } = data;
+  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse } = data;
 
   return (
     <div className="p-6 space-y-8">
@@ -124,6 +126,72 @@ export default function InstructorDashboardPage() {
           color="text-amber-400"
           glowColor="shadow-[0_0_15px_rgba(245,158,11,0.08)]"
         />
+      </div>
+
+      {/* ── Students per Course — bar chart ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="h-5 w-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-white">Students per Course</h2>
+          </div>
+
+          {studentsPerCourse.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">No courses yet</p>
+          ) : (
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: 'bar',
+                  backgroundColor: 'transparent',
+                  height: Math.max(200, studentsPerCourse.length * 55),
+                },
+                title: { text: null },
+                xAxis: {
+                  categories: studentsPerCourse.map((c) => c.title),
+                  labels: { style: { color: '#9ca3af', fontSize: '12px' } },
+                  lineColor: '#334155',
+                  tickColor: '#334155',
+                },
+                yAxis: {
+                  min: 0,
+                  title: { text: null },
+                  labels: { style: { color: '#6b7280', fontSize: '11px' } },
+                  gridLineColor: '#1e293b',
+                  allowDecimals: false,
+                },
+                legend: {
+                  itemStyle: { color: '#d1d5db', fontSize: '13px' },
+                  itemHoverStyle: { color: '#ffffff' },
+                },
+                tooltip: {
+                  backgroundColor: '#1e293b',
+                  borderColor: '#334155',
+                  style: { color: '#e5e7eb' },
+                  pointFormat: '<b>{point.y}</b> students',
+                },
+                plotOptions: {
+                  bar: {
+                    borderRadius: 4,
+                    borderWidth: 0,
+                    dataLabels: {
+                      enabled: true,
+                      style: { color: '#d1d5db', fontSize: '11px', textOutline: 'none' },
+                    },
+                  },
+                },
+                series: [{
+                  name: 'Students',
+                  data: studentsPerCourse.map((c) => c.students),
+                  color: '#a78bfa',
+                }],
+                credits: { enabled: false },
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

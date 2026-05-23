@@ -46,10 +46,18 @@ export async function fetchInstructorDashboard() {
   const uniqueStudents = new Set(enrollments.map((e) => e.student_id)).size;
   const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
+  // ── 4. Students per course ──
+  const studentsPerCourse = courses.map((c) => ({
+    id: c.id,
+    title: c.title,
+    students: enrollments.filter((e) => e.course_id === c.id).length,
+  })).sort((a, b) => b.students - a.students);
+
   return {
     totalCourses,
     publishedCourses,
     uniqueStudents,
     totalRevenue,
+    studentsPerCourse,
   };
 }
