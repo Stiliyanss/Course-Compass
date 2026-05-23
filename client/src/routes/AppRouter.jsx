@@ -20,6 +20,7 @@ import StudentDashboardPage from '../pages/student/StudentDashboardPage';
 import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
 import ManageSectionsPage from '../pages/instructor/ManageSectionsPage';
+import InstructorDashboardPage from '../pages/instructor/InstructorDashboardPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 import AdminUsersPage from '../pages/admin/AdminUsersPage';
 
@@ -103,7 +104,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/instructor/dashboard',
-            element: <div className="text-white">Instructor Dashboard (coming soon)</div>,
+            element: <InstructorDashboardPage />,
           },
           {
             path: '/instructor/courses',
