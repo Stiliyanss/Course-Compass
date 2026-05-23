@@ -27,7 +27,7 @@ export default function InstructorDashboardPage() {
     );
   }
 
-  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse } = data;
+  const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse, revenuePerCourse } = data;
 
   return (
     <div className="p-6 space-y-8">
@@ -186,6 +186,75 @@ export default function InstructorDashboardPage() {
                   name: 'Students',
                   data: studentsPerCourse.map((c) => c.students),
                   color: '#a78bfa',
+                }],
+                credits: { enabled: false },
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── Revenue per Course — bar chart ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-5 w-5 text-amber-400" />
+            <h2 className="text-lg font-semibold text-white">Revenue per Course</h2>
+          </div>
+
+          {revenuePerCourse.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-6">No courses yet</p>
+          ) : (
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: 'bar',
+                  backgroundColor: 'transparent',
+                  height: Math.max(200, revenuePerCourse.length * 55),
+                },
+                title: { text: null },
+                xAxis: {
+                  categories: revenuePerCourse.map((c) => c.title),
+                  labels: { style: { color: '#9ca3af', fontSize: '12px' } },
+                  lineColor: '#334155',
+                  tickColor: '#334155',
+                },
+                yAxis: {
+                  min: 0,
+                  title: { text: null },
+                  labels: {
+                    style: { color: '#6b7280', fontSize: '11px' },
+                    format: '${value}',
+                  },
+                  gridLineColor: '#1e293b',
+                },
+                legend: {
+                  itemStyle: { color: '#d1d5db', fontSize: '13px' },
+                  itemHoverStyle: { color: '#ffffff' },
+                },
+                tooltip: {
+                  backgroundColor: '#1e293b',
+                  borderColor: '#334155',
+                  style: { color: '#e5e7eb' },
+                  pointFormat: '<b>${point.y:.2f}</b>',
+                },
+                plotOptions: {
+                  bar: {
+                    borderRadius: 4,
+                    borderWidth: 0,
+                    dataLabels: {
+                      enabled: true,
+                      format: '${y:.2f}',
+                      style: { color: '#d1d5db', fontSize: '11px', textOutline: 'none' },
+                    },
+                  },
+                },
+                series: [{
+                  name: 'Revenue',
+                  data: revenuePerCourse.map((c) => c.revenue),
+                  color: '#fbbf24',
                 }],
                 credits: { enabled: false },
               }}

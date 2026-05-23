@@ -53,11 +53,21 @@ export async function fetchInstructorDashboard() {
     students: enrollments.filter((e) => e.course_id === c.id).length,
   })).sort((a, b) => b.students - a.students);
 
+  // ── 5. Revenue per course ──
+  const revenuePerCourse = courses.map((c) => ({
+    id: c.id,
+    title: c.title,
+    revenue: payments
+      .filter((p) => p.course_id === c.id)
+      .reduce((sum, p) => sum + (p.amount || 0), 0),
+  })).sort((a, b) => b.revenue - a.revenue);
+
   return {
     totalCourses,
     publishedCourses,
     uniqueStudents,
     totalRevenue,
     studentsPerCourse,
+    revenuePerCourse,
   };
 }
