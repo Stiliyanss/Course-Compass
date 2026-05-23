@@ -129,6 +129,7 @@ export default function InstructorDashboardPage() {
         />
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
       {/* ── Students per Course — bar chart ── */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
@@ -382,6 +383,7 @@ export default function InstructorDashboardPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
