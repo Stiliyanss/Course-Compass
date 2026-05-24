@@ -12,6 +12,8 @@ import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import MaterialPreview from '../../components/MaterialPreview';
+import SaleCountdown from '../../components/SaleCountdown';
+import { isSaleActive, getSalePrice } from '../../utils/sale';
 import toast from 'react-hot-toast';
 
 export default function CourseDetailPage() {
@@ -297,10 +299,23 @@ export default function CourseDetailPage() {
         <div className="lg:col-span-1">
           <div className="sticky top-24 rounded-xl border border-slate-800 bg-slate-900/70 p-6 space-y-5">
             {/* Price */}
-            <div className="text-center">
-              <span className="text-3xl font-bold text-white">
-                {Number(course.price) === 0 ? 'Free' : `$${Number(course.price).toFixed(2)}`}
-              </span>
+            <div className="text-center space-y-2">
+              {Number(course.price) === 0 ? (
+                <span className="text-3xl font-bold text-white">Free</span>
+              ) : isSaleActive(course) ? (
+                <>
+                  <div className="inline-block rounded-full bg-green-500/20 border border-green-500/30 px-3 py-1 text-sm font-bold text-green-400">
+                    {Number(course.discount_percent)}% OFF
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl text-gray-500 line-through">${Number(course.price).toFixed(2)}</span>
+                    <span className="text-3xl font-bold text-green-400">${getSalePrice(course).toFixed(2)}</span>
+                  </div>
+                  <SaleCountdown saleEndsAt={course.sale_ends_at} size="lg" />
+                </>
+              ) : (
+                <span className="text-3xl font-bold text-white">${Number(course.price).toFixed(2)}</span>
+              )}
             </div>
 
             {/* Buy button or enrolled badge */}
@@ -312,7 +327,7 @@ export default function CourseDetailPage() {
             ) : (
               <Button className="w-full" size="lg" onClick={handlePurchase} loading={purchasing}>
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course'}
+                {Number(course.price) === 0 ? 'Enroll for Free' : isSaleActive(course) ? 'Buy Now' : 'Buy Course'}
               </Button>
             )}
 
