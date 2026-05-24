@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     // We need the title and price to create the Stripe Checkout Session.
     const { data: course, error: courseError } = await supabaseClient
       .from("courses")
-      .select("id, title, price, image_url")
+      .select("id, title, price, image_url, discount_percent, sale_ends_at")
       .eq("id", courseId)
       .single();
 
@@ -97,7 +97,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Step 5: Create Stripe Checkout Session ──
+    // ── Step 5: Compute effective price (apply sale if active) ──
+    let effectivePrice = Number(course.price);
+    const saleActive =
+      Number(course.discount_percent) > 0 &&
+      course.sale_ends_at &&
+      new Date(course.sale_ends_at) > new Date();
+
+    if (saleActive) {
+      effectivePrice = effectivePrice * (1 - Number(course.discount_percent) / 100);
+      effectivePrice = Math.round(effectivePrice * 100) / 100;
+    }
+
+    // ── Step 6: Create Stripe Checkout Session ──
     // Initialize Stripe with the secret key (stored as a Supabase secret)
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
       apiVersion: "2024-12-18.acacia",
@@ -116,10 +128,12 @@ Deno.serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: course.title,
+              name: saleActive
+                ? `${course.title} (${course.discount_percent}% off)`
+                : course.title,
               ...(course.image_url ? { images: [course.image_url] } : {}),
             },
-            unit_amount: Math.round(Number(course.price) * 100),
+            unit_amount: Math.round(effectivePrice * 100),
           },
           quantity: 1,
         },
@@ -130,6 +144,8 @@ Deno.serve(async (req) => {
       metadata: {
         courseId: course.id,
         userId: user.id,
+        originalPrice: String(course.price),
+        discountPercent: String(course.discount_percent || 0),
       },
 
       // Where to redirect the student after payment
