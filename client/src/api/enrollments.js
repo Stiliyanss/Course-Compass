@@ -39,6 +39,49 @@ export async function checkEnrollment(courseId) {
   return !!data;
 }
 
+/**
+ * Fetch enrollment counts and student details for all courses owned by the instructor.
+ * Returns { [courseId]: { count, students: [{ id, full_name, avatar_url, enrolled_at }] } }
+ */
+export async function fetchCourseEnrollments(courseIds) {
+  if (!courseIds || courseIds.length === 0) return {};
+
+  const { data: enrollments, error } = await supabase
+    .from('enrollments')
+    .select('student_id, course_id, enrolled_at')
+    .eq('payment_status', 'completed')
+    .in('course_id', courseIds);
+
+  if (error) throw error;
+  if (!enrollments || enrollments.length === 0) return {};
+
+  // Fetch student profiles
+  const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', studentIds);
+
+  // Group by course
+  const result = {};
+  for (const courseId of courseIds) {
+    const courseEnrollments = enrollments.filter((e) => e.course_id === courseId);
+    result[courseId] = {
+      count: courseEnrollments.length,
+      students: courseEnrollments.map((e) => {
+        const profile = profiles?.find((p) => p.id === e.student_id);
+        return {
+          id: e.student_id,
+          full_name: profile?.full_name || 'Unknown',
+          avatar_url: profile?.avatar_url || null,
+          enrolled_at: e.enrolled_at,
+        };
+      }),
+    };
+  }
+  return result;
+}
+
 export async function fetchMyEnrollments() {
   const { data: { user } } = await supabase.auth.getUser();
 
