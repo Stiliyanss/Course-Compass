@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInstructorCourses, useDeleteCourse, useUpdateCourse } from '../../hooks/useCourses';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText } from 'lucide-react';
+import { useCourseEnrollments } from '../../hooks/useEnrollments';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText, Users, X } from 'lucide-react';
 import { format } from 'date-fns';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -12,8 +13,13 @@ export default function ManageCoursesPage() {
   const deleteMutation = useDeleteCourse();
   const updateMutation = useUpdateCourse();
 
+  const courseIds = courses?.map((c) => c.id) || [];
+  const { data: enrollmentData } = useCourseEnrollments(courseIds);
+
   // Track which course has the delete confirmation open
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  // Track which course's student list modal is open
+  const [studentModalCourseId, setStudentModalCourseId] = useState(null);
 
   function handleDelete(id) {
     deleteMutation.mutate(id, {
@@ -125,9 +131,20 @@ export default function ManageCoursesPage() {
               setConfirmDeleteId={setConfirmDeleteId}
               isDeleting={deleteMutation.isPending}
               isUpdating={updateMutation.isPending}
+              studentCount={enrollmentData?.[course.id]?.count || 0}
+              onViewStudents={() => setStudentModalCourseId(course.id)}
             />
           ))}
         </div>
+      )}
+
+      {/* Student list modal */}
+      {studentModalCourseId && (
+        <StudentListModal
+          courseName={courses.find((c) => c.id === studentModalCourseId)?.title}
+          students={enrollmentData?.[studentModalCourseId]?.students || []}
+          onClose={() => setStudentModalCourseId(null)}
+        />
       )}
     </div>
   );
@@ -141,6 +158,8 @@ function CourseRow({
   setConfirmDeleteId,
   isDeleting,
   isUpdating,
+  studentCount,
+  onViewStudents,
 }) {
   const statusStyles = {
     draft: { badge: 'bg-gray-400/10 text-gray-400 border-gray-400/30', label: 'Draft' },
@@ -179,6 +198,13 @@ function CourseRow({
               <span className="font-medium text-purple-400">
                 {Number(course.price) === 0 ? 'Free' : `$${Number(course.price).toFixed(2)}`}
               </span>
+              <button
+                onClick={onViewStudents}
+                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                <Users className="h-3 w-3" />
+                {studentCount} {studentCount === 1 ? 'student' : 'students'}
+              </button>
             </div>
           </div>
         </div>
@@ -265,6 +291,77 @@ function CourseRow({
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StudentListModal({ courseName, students, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative w-full max-w-md max-h-[80vh] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white">Enrolled Students</h3>
+            <p className="text-sm text-gray-400 truncate">{courseName}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Student list */}
+        <div className="overflow-y-auto max-h-[60vh] p-4">
+          {students.length === 0 ? (
+            <div className="py-8 text-center">
+              <Users className="mx-auto h-8 w-8 text-gray-600" />
+              <p className="mt-2 text-sm text-gray-500">No students enrolled yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {students.map((student) => (
+                <div
+                  key={student.id}
+                  className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/30 px-4 py-3 hover:bg-slate-800/60 transition-colors"
+                >
+                  {/* Avatar */}
+                  <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
+                    {student.avatar_url ? (
+                      <img src={student.avatar_url} alt={student.full_name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
+                        <span className="text-sm font-bold text-purple-300">
+                          {student.full_name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white truncate">{student.full_name}</p>
+                    <p className="text-xs text-gray-500">
+                      Enrolled {format(new Date(student.enrolled_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-slate-800 px-6 py-3">
+          <p className="text-xs text-gray-500 text-center">
+            {students.length} {students.length === 1 ? 'student' : 'students'} enrolled
+          </p>
         </div>
       </div>
     </div>
