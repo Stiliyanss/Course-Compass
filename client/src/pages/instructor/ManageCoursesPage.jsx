@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInstructorCourses, useDeleteCourse, useUpdateCourse } from '../../hooks/useCourses';
 import { useCourseEnrollments } from '../../hooks/useEnrollments';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText, Users, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText, Users, X, Tag } from 'lucide-react';
+import { isSaleActive } from '../../utils/sale';
+import SetSaleModal from '../../components/SetSaleModal';
 import { format } from 'date-fns';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -20,6 +22,8 @@ export default function ManageCoursesPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   // Track which course's student list modal is open
   const [studentModalCourseId, setStudentModalCourseId] = useState(null);
+  // Track which course's sale modal is open
+  const [saleModalCourseId, setSaleModalCourseId] = useState(null);
 
   function handleDelete(id) {
     deleteMutation.mutate(id, {
@@ -133,6 +137,7 @@ export default function ManageCoursesPage() {
               isUpdating={updateMutation.isPending}
               studentCount={enrollmentData?.[course.id]?.count || 0}
               onViewStudents={() => setStudentModalCourseId(course.id)}
+              onSetSale={() => setSaleModalCourseId(course.id)}
             />
           ))}
         </div>
@@ -144,6 +149,15 @@ export default function ManageCoursesPage() {
           courseName={courses.find((c) => c.id === studentModalCourseId)?.title}
           students={enrollmentData?.[studentModalCourseId]?.students || []}
           onClose={() => setStudentModalCourseId(null)}
+        />
+      )}
+
+      {/* Sale modal */}
+      {saleModalCourseId && (
+        <SetSaleModal
+          course={courses.find((c) => c.id === saleModalCourseId)}
+          onClose={() => setSaleModalCourseId(null)}
+          updateMutation={updateMutation}
         />
       )}
     </div>
@@ -160,6 +174,7 @@ function CourseRow({
   isUpdating,
   studentCount,
   onViewStudents,
+  onSetSale,
 }) {
   const statusStyles = {
     draft: { badge: 'bg-gray-400/10 text-gray-400 border-gray-400/30', label: 'Draft' },
@@ -243,6 +258,14 @@ function CourseRow({
             >
               <Eye className="h-3.5 w-3.5" />
               Republish
+            </Button>
+          )}
+
+          {/* Sale */}
+          {Number(course.price) > 0 && (
+            <Button variant="ghost" onClick={onSetSale} className="text-xs px-3 py-1 gap-1.5">
+              <Tag className={`h-3.5 w-3.5 ${isSaleActive(course) ? 'text-green-400' : ''}`} />
+              {isSaleActive(course) ? `${Number(course.discount_percent)}% Off` : 'Sale'}
             </Button>
           )}
 

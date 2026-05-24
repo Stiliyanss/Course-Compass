@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Clock, User } from 'lucide-react';
+import { isSaleActive, getSalePrice } from '../utils/sale';
+import SaleCountdown from './SaleCountdown';
 
 export default function CourseCard({ course }) {
   return (
@@ -8,7 +10,7 @@ export default function CourseCard({ course }) {
       className="group rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden transition-all hover:border-purple-500/40 hover:bg-slate-900"
     >
       {/* Thumbnail */}
-      <div className="aspect-video w-full overflow-hidden bg-slate-800">
+      <div className="relative aspect-video w-full overflow-hidden bg-slate-800">
         {course.image_url ? (
           <img
             src={course.image_url}
@@ -19,6 +21,11 @@ export default function CourseCard({ course }) {
           <div className="flex h-full items-center justify-center text-gray-600 text-sm">
             No image
           </div>
+        )}
+        {isSaleActive(course) && (
+          <span className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white shadow-lg">
+            -{Number(course.discount_percent)}%
+          </span>
         )}
       </div>
 
@@ -44,9 +51,19 @@ export default function CourseCard({ course }) {
             </div>
           )}
 
-          <span className="text-lg font-bold text-purple-400">
-            {Number(course.price) === 0 ? 'Free' : `$${Number(course.price).toFixed(2)}`}
-          </span>
+          {Number(course.price) === 0 ? (
+            <span className="text-lg font-bold text-purple-400">Free</span>
+          ) : isSaleActive(course) ? (
+            <div className="flex flex-col items-end">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 line-through">${Number(course.price).toFixed(2)}</span>
+                <span className="text-lg font-bold text-green-400">${getSalePrice(course).toFixed(2)}</span>
+              </div>
+              <SaleCountdown saleEndsAt={course.sale_ends_at} />
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-purple-400">${Number(course.price).toFixed(2)}</span>
+          )}
         </div>
       </div>
     </Link>
