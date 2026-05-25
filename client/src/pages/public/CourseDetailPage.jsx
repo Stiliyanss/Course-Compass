@@ -5,7 +5,8 @@ import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
 import { useAuth } from '../../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X } from 'lucide-react';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X, Star, Pencil, Trash2, MessageSquare } from 'lucide-react';
+import { format } from 'date-fns';
 import { useNotes, useSaveNote } from '../../hooks/useNotes';
 import { useProgress, useToggleProgress } from '../../hooks/useProgress';
 import { supabase } from '../../lib/supabaseClient';
@@ -14,6 +15,8 @@ import Spinner from '../../components/ui/Spinner';
 import MaterialPreview from '../../components/MaterialPreview';
 import SaleCountdown from '../../components/SaleCountdown';
 import { isSaleActive, getSalePrice } from '../../utils/sale';
+import StarRating from '../../components/StarRating';
+import { useReviews, useMyReview, useCreateReview, useUpdateReview, useDeleteReview } from '../../hooks/useReviews';
 import toast from 'react-hot-toast';
 
 export default function CourseDetailPage() {
@@ -37,6 +40,13 @@ export default function CourseDetailPage() {
   // Fetch progress — Set of completed material IDs
   const { data: completedSet = new Set() } = useProgress(isEnrolled ? id : null);
   const toggleProgress = useToggleProgress(id);
+
+  // Fetch reviews for this course
+  const { data: reviews = [] } = useReviews(id);
+  const { data: myReview } = useMyReview(id);
+  const createReviewMutation = useCreateReview(id);
+  const updateReviewMutation = useUpdateReview(id);
+  const deleteReviewMutation = useDeleteReview(id);
 
   // Calculate progress percentage across all sections
   const totalMaterials = sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0);
@@ -293,6 +303,18 @@ export default function CourseDetailPage() {
               </div>
             </div>
           )}
+
+          {/* ── Reviews section ── */}
+          <ReviewsSection
+            reviews={reviews}
+            myReview={myReview}
+            isEnrolled={isEnrolled}
+            user={user}
+            courseId={id}
+            createMutation={createReviewMutation}
+            updateMutation={updateReviewMutation}
+            deleteMutation={deleteReviewMutation}
+          />
         </div>
 
         {/* Right column — purchase card (sticky on scroll) */}
@@ -399,6 +421,251 @@ async function handleDownload(filePath, title) {
  * A helper that returns the right icon for a file type.
  * Videos get a Video icon, everything else gets FileText or generic File.
  */
+/**
+ * ReviewsSection — displays reviews, average rating, and review form.
+ */
+function ReviewsSection({ reviews, myReview, isEnrolled, user, courseId, createMutation, updateMutation, deleteMutation }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+
+  // Calculate average rating
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : 0;
+
+  // Rating distribution (how many 5-star, 4-star, etc.)
+  const distribution = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: reviews.filter((r) => r.rating === star).length,
+    percent: reviews.length > 0
+      ? Math.round((reviews.filter((r) => r.rating === star).length / reviews.length) * 100)
+      : 0,
+  }));
+
+  function handleStartEdit() {
+    setRating(myReview.rating);
+    setComment(myReview.comment || '');
+    setEditMode(true);
+    setShowForm(true);
+  }
+
+  function handleCancel() {
+    setShowForm(false);
+    setEditMode(false);
+    setRating(0);
+    setComment('');
+  }
+
+  function handleSubmit() {
+    if (rating === 0) {
+      toast.error('Please select a rating');
+      return;
+    }
+
+    if (editMode) {
+      updateMutation.mutate(
+        { reviewId: myReview.id, rating, comment },
+        {
+          onSuccess: () => {
+            toast.success('Review updated!');
+            handleCancel();
+          },
+          onError: (err) => toast.error(err.message),
+        }
+      );
+    } else {
+      createMutation.mutate(
+        { courseId, rating, comment },
+        {
+          onSuccess: () => {
+            toast.success('Review submitted!');
+            handleCancel();
+          },
+          onError: (err) => toast.error(err.message),
+        }
+      );
+    }
+  }
+
+  function handleDelete() {
+    deleteMutation.mutate(myReview.id, {
+      onSuccess: () => toast.success('Review deleted'),
+      onError: (err) => toast.error(err.message),
+    });
+  }
+
+  return (
+    <div>
+      <h2 className="mb-4 text-xl font-semibold text-white flex items-center gap-2">
+        <MessageSquare className="h-5 w-5 text-purple-400" />
+        Reviews
+        {reviews.length > 0 && (
+          <span className="text-sm font-normal text-gray-500">({reviews.length})</span>
+        )}
+      </h2>
+
+      <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
+        {/* Summary header — average rating + distribution */}
+        {reviews.length > 0 ? (
+          <div className="flex flex-col sm:flex-row gap-6 p-6 border-b border-slate-800">
+            {/* Left: big average */}
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-4xl font-bold text-white">{avgRating}</span>
+              <StarRating rating={Math.round(Number(avgRating))} size="md" />
+              <span className="mt-1 text-xs text-gray-500">{reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}</span>
+            </div>
+
+            {/* Right: distribution bars */}
+            <div className="flex-1 space-y-1.5">
+              {distribution.map((d) => (
+                <div key={d.star} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-3">{d.star}</span>
+                  <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                  <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                      style={{ width: `${d.percent}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500 w-6 text-right">{d.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 border-b border-slate-800 text-center">
+            <MessageSquare className="mx-auto h-8 w-8 text-gray-600 mb-2" />
+            <p className="text-sm text-gray-500">No reviews yet. Be the first to review!</p>
+          </div>
+        )}
+
+        {/* Write / Edit review form */}
+        {isEnrolled && user && (
+          <div className="p-6 border-b border-slate-800">
+            {showForm ? (
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-white">
+                  {editMode ? 'Edit your review' : 'Write a review'}
+                </h3>
+
+                {/* Star input */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Your rating</label>
+                  <StarRating rating={rating} onChange={setRating} size="lg" />
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1.5">Comment (optional)</label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={3}
+                    placeholder="Share your experience with this course..."
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-none"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                    className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-500 transition-colors disabled:opacity-50"
+                  >
+                    {createMutation.isPending || updateMutation.isPending
+                      ? 'Saving...'
+                      : editMode ? 'Update Review' : 'Submit Review'}
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : myReview ? (
+              /* User already has a review — show edit/delete buttons */
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400">You reviewed this course</span>
+                <button
+                  onClick={handleStartEdit}
+                  className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  <Pencil className="h-3 w-3" />
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Delete
+                </button>
+              </div>
+            ) : (
+              /* No review yet — show write button */
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 rounded-lg border border-purple-500/30 bg-purple-500/10 px-4 py-2.5 text-sm font-medium text-purple-400 hover:bg-purple-500/20 transition-colors"
+              >
+                <Star className="h-4 w-4" />
+                Write a Review
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Review list */}
+        {reviews.length > 0 && (
+          <div className="divide-y divide-slate-800">
+            {reviews.map((review) => (
+              <div key={review.id} className="p-5 hover:bg-slate-800/20 transition-colors">
+                <div className="flex items-start gap-3">
+                  {/* Avatar */}
+                  <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
+                    {review.student_avatar ? (
+                      <img src={review.student_avatar} alt={review.student_name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
+                        <span className="text-sm font-bold text-purple-300">
+                          {review.student_name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    {/* Name + date */}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-white">{review.student_name}</span>
+                      <span className="text-xs text-gray-600">
+                        {format(new Date(review.created_at), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+
+                    {/* Stars */}
+                    <StarRating rating={review.rating} size="sm" />
+
+                    {/* Comment */}
+                    {review.comment && (
+                      <p className="mt-2 text-sm text-gray-400 leading-relaxed">{review.comment}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function getMaterialIcon(fileType) {
   const videoTypes = ['mp4', 'webm', 'mov', 'avi'];
   const docTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'];
