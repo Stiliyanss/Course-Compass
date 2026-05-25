@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useInstructorCourses, useDeleteCourse, useUpdateCourse } from '../../hooks/useCourses';
 import { useCourseEnrollments } from '../../hooks/useEnrollments';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText, Users, X, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Archive, BookOpen, Calendar, FileText, Users, X, Tag, ChevronDown, ChevronRight, CheckCircle, Circle, Video, File } from 'lucide-react';
 import { isSaleActive } from '../../utils/sale';
+import { fetchStudentCourseProgress } from '../../api/enrollments';
 import SetSaleModal from '../../components/SetSaleModal';
 import { format } from 'date-fns';
 import Button from '../../components/ui/Button';
@@ -146,6 +147,7 @@ export default function ManageCoursesPage() {
       {/* Student list modal */}
       {studentModalCourseId && (
         <StudentListModal
+          courseId={studentModalCourseId}
           courseName={courses.find((c) => c.id === studentModalCourseId)?.title}
           students={enrollmentData?.[studentModalCourseId]?.students || []}
           onClose={() => setStudentModalCourseId(null)}
@@ -320,11 +322,43 @@ function CourseRow({
   );
 }
 
-function StudentListModal({ courseName, students, onClose }) {
+function StudentListModal({ courseId, courseName, students, onClose }) {
+  const [expandedId, setExpandedId] = useState(null);
+  const [progressData, setProgressData] = useState({});
+  const [loadingId, setLoadingId] = useState(null);
+
+  async function handleToggle(studentId) {
+    if (expandedId === studentId) {
+      setExpandedId(null);
+      return;
+    }
+
+    // Fetch progress if not already cached
+    if (!progressData[studentId]) {
+      setLoadingId(studentId);
+      try {
+        const data = await fetchStudentCourseProgress(studentId, courseId);
+        setProgressData((prev) => ({ ...prev, [studentId]: data }));
+      } catch (err) {
+        toast.error('Failed to load progress');
+      }
+      setLoadingId(null);
+    }
+    setExpandedId(studentId);
+  }
+
+  function getMaterialIcon(fileType) {
+    const videoTypes = ['mp4', 'webm', 'mov', 'avi'];
+    const docTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'];
+    if (videoTypes.includes(fileType)) return Video;
+    if (docTypes.includes(fileType)) return FileText;
+    return File;
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-md max-h-[80vh] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
+        className="relative w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -342,7 +376,7 @@ function StudentListModal({ courseName, students, onClose }) {
         </div>
 
         {/* Student list */}
-        <div className="overflow-y-auto max-h-[60vh] p-4">
+        <div className="overflow-y-auto max-h-[65vh] p-4">
           {students.length === 0 ? (
             <div className="py-8 text-center">
               <Users className="mx-auto h-8 w-8 text-gray-600" />
@@ -350,32 +384,117 @@ function StudentListModal({ courseName, students, onClose }) {
             </div>
           ) : (
             <div className="space-y-2">
-              {students.map((student) => (
-                <div
-                  key={student.id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/30 px-4 py-3 hover:bg-slate-800/60 transition-colors"
-                >
-                  {/* Avatar */}
-                  <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
-                    {student.avatar_url ? (
-                      <img src={student.avatar_url} alt={student.full_name} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
-                        <span className="text-sm font-bold text-purple-300">
-                          {student.full_name.charAt(0).toUpperCase()}
+              {students.map((student) => {
+                const isExpanded = expandedId === student.id;
+                const progress = progressData[student.id];
+                const isLoading = loadingId === student.id;
+                const percent = progress && progress.total > 0
+                  ? Math.round((progress.completed / progress.total) * 100)
+                  : 0;
+
+                return (
+                  <div key={student.id} className="rounded-xl border border-slate-800 bg-slate-800/30 overflow-hidden">
+                    {/* Student row — clickable */}
+                    <button
+                      onClick={() => handleToggle(student.id)}
+                      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-800/60 transition-colors text-left"
+                    >
+                      {/* Expand icon */}
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 shrink-0 text-gray-500" />
+                      )}
+
+                      {/* Avatar */}
+                      <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
+                        {student.avatar_url ? (
+                          <img src={student.avatar_url} alt={student.full_name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
+                            <span className="text-sm font-bold text-purple-300">
+                              {student.full_name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-white truncate">{student.full_name}</p>
+                        <p className="text-xs text-gray-500">
+                          Enrolled {format(new Date(student.enrolled_at), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+
+                      {/* Progress badge (show after first load) */}
+                      {progress && (
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+                          percent === 100
+                            ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                            : 'bg-purple-500/10 border border-purple-500/20 text-purple-400'
+                        }`}>
+                          {percent}%
                         </span>
+                      )}
+                    </button>
+
+                    {/* Expanded progress panel */}
+                    {isExpanded && (
+                      <div className="border-t border-slate-800 px-4 py-3 bg-slate-900/50">
+                        {isLoading ? (
+                          <div className="flex justify-center py-4">
+                            <Spinner size="sm" />
+                          </div>
+                        ) : progress ? (
+                          <div className="space-y-3">
+                            {/* Progress bar */}
+                            <div>
+                              <div className="flex items-center justify-between text-xs mb-1.5">
+                                <span className="text-gray-400">{progress.completed} / {progress.total} materials</span>
+                                <span className={percent === 100 ? 'text-green-400 font-bold' : 'text-purple-400 font-bold'}>
+                                  {percent}%
+                                </span>
+                              </div>
+                              <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${
+                                    percent === 100
+                                      ? 'bg-gradient-to-r from-green-600 to-green-400'
+                                      : 'bg-gradient-to-r from-purple-600 to-purple-400'
+                                  }`}
+                                  style={{ width: `${percent}%` }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Material list */}
+                            {progress.materials.length > 0 && (
+                              <div className="space-y-1">
+                                {progress.materials.map((mat) => {
+                                  const MatIcon = getMaterialIcon(mat.file_type);
+                                  return (
+                                    <div key={mat.id} className="flex items-center gap-2 py-1">
+                                      {mat.completed ? (
+                                        <CheckCircle className="h-3.5 w-3.5 shrink-0 text-green-400" />
+                                      ) : (
+                                        <Circle className="h-3.5 w-3.5 shrink-0 text-gray-600" />
+                                      )}
+                                      <MatIcon className="h-3.5 w-3.5 shrink-0 text-gray-500" />
+                                      <span className={`text-xs truncate ${mat.completed ? 'text-gray-400 line-through' : 'text-gray-300'}`}>
+                                        {mat.title}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white truncate">{student.full_name}</p>
-                    <p className="text-xs text-gray-500">
-                      Enrolled {format(new Date(student.enrolled_at), 'MMM d, yyyy')}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
