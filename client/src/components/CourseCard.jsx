@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Clock, User } from 'lucide-react';
 import { isSaleActive, getSalePrice } from '../utils/sale';
 import SaleCountdown from './SaleCountdown';
+import StarRating from './StarRating';
 
 export default function CourseCard({ course }) {
   return (
@@ -41,6 +42,16 @@ export default function CourseCard({ course }) {
           <User className="h-3.5 w-3.5" />
           {course.instructor?.full_name || 'Unknown'}
         </div>
+
+        {/* Star rating */}
+        {course.avgRating && (
+          <StarRating
+            rating={Math.round(Number(course.avgRating))}
+            showValue
+            count={course.reviewCount}
+            size="sm"
+          />
+        )}
 
         {/* Bottom row: duration + price */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-800">
