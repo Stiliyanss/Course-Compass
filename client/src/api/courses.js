@@ -55,11 +55,36 @@ export async function fetchCourses(filters = {}) {
     .select('id, full_name, avatar_url')
     .in('id', instructorIds);
 
-  // Attach each instructor to their course
-  return courses.map((course) => ({
-    ...course,
-    instructor: instructors?.find((i) => i.id === course.instructor_id) || null,
-  }));
+  // Fetch review stats for all courses
+  const courseIds = courses.map((c) => c.id);
+  let reviewStats = {};
+  if (courseIds.length > 0) {
+    const { data: reviews } = await supabase
+      .from('course_reviews')
+      .select('course_id, rating')
+      .in('course_id', courseIds);
+
+    if (reviews) {
+      for (const r of reviews) {
+        if (!reviewStats[r.course_id]) {
+          reviewStats[r.course_id] = { total: 0, sum: 0 };
+        }
+        reviewStats[r.course_id].total++;
+        reviewStats[r.course_id].sum += r.rating;
+      }
+    }
+  }
+
+  // Attach instructor + review stats to each course
+  return courses.map((course) => {
+    const stats = reviewStats[course.id];
+    return {
+      ...course,
+      instructor: instructors?.find((i) => i.id === course.instructor_id) || null,
+      avgRating: stats ? (stats.sum / stats.total).toFixed(1) : null,
+      reviewCount: stats ? stats.total : 0,
+    };
+  });
 }
 
 /**
@@ -86,7 +111,18 @@ export async function fetchCourseById(id) {
 
   if (profileError) console.error('Instructor profile fetch error:', profileError);
 
-  return { ...course, instructor };
+  // Fetch review stats for this course
+  const { data: reviews } = await supabase
+    .from('course_reviews')
+    .select('rating')
+    .eq('course_id', id);
+
+  const reviewCount = reviews?.length || 0;
+  const avgRating = reviewCount > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount).toFixed(1)
+    : null;
+
+  return { ...course, instructor, avgRating, reviewCount };
 }
 
 
