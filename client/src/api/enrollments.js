@@ -1,6 +1,47 @@
 import { supabase } from '../lib/supabaseClient';
 
 /**
+ * Fetch a specific student's progress on a specific course.
+ * Returns { total, completed, materials: [{ id, title, file_type, completed }] }
+ */
+export async function fetchStudentCourseProgress(studentId, courseId) {
+  // Get all materials for this course
+  const { data: materials, error: matErr } = await supabase
+    .from('course_materials')
+    .select('id, title, file_type, order_index, section_id')
+    .eq('course_id', courseId)
+    .order('order_index');
+
+  if (matErr) throw matErr;
+  if (!materials || materials.length === 0) {
+    return { total: 0, completed: 0, materials: [] };
+  }
+
+  // Get completed materials for this student
+  const materialIds = materials.map((m) => m.id);
+  const { data: progress, error: progErr } = await supabase
+    .from('material_progress')
+    .select('material_id')
+    .eq('student_id', studentId)
+    .in('material_id', materialIds);
+
+  if (progErr) throw progErr;
+
+  const completedSet = new Set((progress || []).map((p) => p.material_id));
+
+  return {
+    total: materials.length,
+    completed: completedSet.size,
+    materials: materials.map((m) => ({
+      id: m.id,
+      title: m.title,
+      file_type: m.file_type,
+      completed: completedSet.has(m.id),
+    })),
+  };
+}
+
+/**
  * Fetch all courses the current student is enrolled in.
  *
  * Queries the enrollments table filtered by the current user,
