@@ -127,6 +127,29 @@ export async function fetchInstructorDashboard() {
     });
   }
 
+  // ── 8. Review stats ──
+  let allReviews = [];
+  if (courseIds.length > 0) {
+    const { data: reviews } = await supabase
+      .from('course_reviews')
+      .select('course_id, rating')
+      .in('course_id', courseIds);
+    allReviews = reviews || [];
+  }
+
+  const totalReviews = allReviews.length;
+  const overallAvgRating = totalReviews > 0
+    ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
+    : null;
+
+  const ratingsPerCourse = courses.map((c) => {
+    const courseReviews = allReviews.filter((r) => r.course_id === c.id);
+    const avg = courseReviews.length > 0
+      ? Math.round((courseReviews.reduce((s, r) => s + r.rating, 0) / courseReviews.length) * 10) / 10
+      : 0;
+    return { id: c.id, title: c.title, avgRating: avg, reviewCount: courseReviews.length };
+  }).sort((a, b) => b.avgRating - a.avgRating);
+
   return {
     totalCourses,
     publishedCourses,
@@ -136,5 +159,8 @@ export async function fetchInstructorDashboard() {
     revenuePerCourse,
     completionPerCourse,
     recentActivity,
+    totalReviews,
+    overallAvgRating,
+    ratingsPerCourse,
   };
 }
