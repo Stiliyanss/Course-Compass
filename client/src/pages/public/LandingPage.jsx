@@ -30,20 +30,20 @@ export default function LandingPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-24 md:py-32">
+      <section className="relative overflow-hidden py-16 sm:py-24 md:py-32">
         {/* Background glow effects */}
         <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-blue-600/15 blur-3xl" />
         <div className="absolute top-1/2 right-1/3 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl" />
 
-        <div className="relative mx-auto max-w-7xl px-6 text-center">
+        <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5 text-sm text-purple-300">
             <Sparkles className="h-4 w-4" />
             Start your learning journey today
           </div>
 
           <h1
-            className="text-6xl font-black tracking-tight text-white md:text-7xl lg:text-8xl"
+            className="text-4xl font-black tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Find the perfect course
@@ -58,7 +58,7 @@ export default function LandingPage() {
             advance your career, and achieve your goals with Course Compass.
           </p>
 
-          <div className="mt-10 flex items-center justify-center gap-4">
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
             <Link to="/courses">
               <Button className="px-8 py-3 text-base">
                 Browse Courses
@@ -77,10 +77,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="border-t border-slate-800 py-20">
-        <div className="mx-auto max-w-7xl px-6">
+      <section className="border-t border-slate-800 py-12 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <h2
-            className="text-center text-3xl font-bold text-white md:text-4xl"
+            className="text-center text-2xl font-bold text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Why Course Compass?
@@ -88,11 +88,11 @@ export default function LandingPage() {
           <p className="mx-auto mt-4 max-w-xl text-center text-gray-400">
             Everything you need to learn effectively in one place.
           </p>
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:mt-16 sm:gap-8 md:grid-cols-3">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-xl border border-slate-800 bg-slate-900/50 p-8 text-center transition-all hover:border-purple-500/40 hover:bg-slate-900"
+                className="group rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center sm:p-8 transition-all hover:border-purple-500/40 hover:bg-slate-900"
               >
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/10 transition-colors group-hover:bg-purple-500/20">
                   <feature.icon className="h-6 w-6 text-purple-400" />
@@ -116,7 +116,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-blue-900/20 to-purple-900/20" />
           <div className="relative mx-auto max-w-7xl px-6 text-center">
             <h2
-              className="text-3xl font-bold text-white md:text-4xl"
+              className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Ready to start learning?
