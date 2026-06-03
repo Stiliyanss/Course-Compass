@@ -31,9 +31,9 @@ export default function InstructorDashboardPage() {
   const { totalCourses, publishedCourses, uniqueStudents, totalRevenue, studentsPerCourse, revenuePerCourse, completionPerCourse, recentActivity, totalReviews, overallAvgRating, ratingsPerCourse } = data;
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 space-y-4 sm:p-6 sm:space-y-8">
       {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 px-5 py-5">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 px-4 py-4 sm:px-5 sm:py-5">
         {/* Decorative glow orbs */}
         <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-purple-600/10 blur-3xl" />
         <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-amber-600/8 blur-3xl" />
@@ -46,7 +46,7 @@ export default function InstructorDashboardPage() {
               Instructor Dashboard
             </div>
             <h1
-              className="text-3xl font-bold text-white md:text-4xl"
+              className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Welcome back, {profile?.full_name?.split(' ')[0] || 'Instructor'}
@@ -139,14 +139,14 @@ export default function InstructorDashboardPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
       {/* ── Students per Course — bar chart ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-5 w-5 text-blue-400" />
-            <h2 className="text-lg font-semibold text-white">Students per Course</h2>
+            <h2 className="text-base font-semibold text-white sm:text-lg">Students per Course</h2>
           </div>
 
           {studentsPerCourse.length === 0 ? (
@@ -207,12 +207,12 @@ export default function InstructorDashboardPage() {
       </div>
 
       {/* ── Revenue per Course — bar chart ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-5 w-5 text-amber-400" />
-            <h2 className="text-lg font-semibold text-white">Revenue per Course</h2>
+            <h2 className="text-base font-semibold text-white sm:text-lg">Revenue per Course</h2>
           </div>
 
           {revenuePerCourse.length === 0 ? (
@@ -276,12 +276,12 @@ export default function InstructorDashboardPage() {
       </div>
 
       {/* ── Average Completion Rate per Course ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <GraduationCap className="h-5 w-5 text-green-400" />
-            <h2 className="text-lg font-semibold text-white">Average Completion Rate</h2>
+            <h2 className="text-base font-semibold text-white sm:text-lg">Average Completion Rate</h2>
           </div>
 
           {completionPerCourse.length === 0 ? (
@@ -346,12 +346,12 @@ export default function InstructorDashboardPage() {
       </div>
 
       {/* ── Ratings per Course — bar chart ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <Star className="h-5 w-5 text-yellow-400" />
-            <h2 className="text-lg font-semibold text-white">Ratings per Course</h2>
+            <h2 className="text-base font-semibold text-white sm:text-lg">Ratings per Course</h2>
           </div>
 
           {ratingsPerCourse.length === 0 ? (
@@ -416,12 +416,12 @@ export default function InstructorDashboardPage() {
       </div>
 
       {/* ── Recent Enrollments ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="relative">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="h-5 w-5 text-purple-400" />
-            <h2 className="text-lg font-semibold text-white">Recent Enrollments</h2>
+            <h2 className="text-base font-semibold text-white sm:text-lg">Recent Enrollments</h2>
           </div>
 
           {recentActivity.length === 0 ? (
@@ -431,7 +431,7 @@ export default function InstructorDashboardPage() {
               {recentActivity.map((item, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-4 px-2 py-3 hover:bg-slate-800/30 transition-colors ${
+                  className={`flex items-start gap-3 px-2 py-3 hover:bg-slate-800/30 transition-colors sm:items-center sm:gap-4 ${
                     index < recentActivity.length - 1 ? 'border-b border-slate-800/50' : ''
                   }`}
                 >
@@ -471,15 +471,15 @@ export default function InstructorDashboardPage() {
 
 function StatCard({ icon: Icon, label, value, gradient, borderColor, iconBg, color, glowColor }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${borderColor} bg-gradient-to-br ${gradient} p-5 ${glowColor}`}>
+    <div className={`relative overflow-hidden rounded-2xl border ${borderColor} bg-gradient-to-br ${gradient} p-3 sm:p-5 ${glowColor}`}>
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-400">{label}</p>
-          <p className={`mt-2 text-3xl font-bold ${color}`}>{value}</p>
+          <p className="text-xs sm:text-sm text-gray-400">{label}</p>
+          <p className={`mt-1 text-2xl font-bold sm:mt-2 sm:text-3xl ${color}`}>{value}</p>
         </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} border border-white/5`}>
-          <Icon className={`h-6 w-6 ${color}`} />
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl sm:h-12 sm:w-12 ${iconBg} border border-white/5`}>
+          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
         </div>
       </div>
     </div>
