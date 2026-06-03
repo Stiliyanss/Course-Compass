@@ -53,9 +53,9 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 space-y-4 sm:p-6 sm:space-y-8">
       {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 px-5 py-5">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 px-4 py-4 sm:px-5 sm:py-5">
         <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-purple-600/10 blur-3xl" />
         <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-amber-600/8 blur-3xl" />
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
             Admin Dashboard
           </div>
           <h1
-            className="text-3xl font-bold text-white md:text-4xl"
+            className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Welcome back, {profile?.full_name?.split(' ')[0] || 'Admin'}
@@ -78,19 +78,19 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── Shared stat cards ── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         {sharedStats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-slate-800 bg-slate-900 p-4"
+            className="rounded-xl border border-slate-800 bg-slate-900 p-3 sm:p-4"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">{stat.label}</span>
-              <div className={`rounded-lg border p-2 ${colorMap[stat.color]}`}>
+              <span className="text-xs sm:text-sm text-gray-400">{stat.label}</span>
+              <div className={`rounded-lg border p-1.5 sm:p-2 ${colorMap[stat.color]}`}>
                 <stat.icon className="h-4 w-4" />
               </div>
             </div>
-            <p className="mt-2 text-2xl font-bold text-white">{stat.value}</p>
+            <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -122,9 +122,9 @@ export default function AdminDashboardPage() {
           transition={{ duration: 0.25, ease: 'easeInOut' }}
         >
       {activeTab === 'students' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Student stat cards */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-400">Total Students</span>
@@ -132,7 +132,7 @@ export default function AdminDashboardPage() {
                   <Users className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{totalStudents}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{totalStudents}</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
                   <GraduationCap className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{activeStudents}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{activeStudents}</p>
               <p className="mt-1 text-xs text-gray-500">With at least one enrollment</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
                   <UserX className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{inactiveStudents}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{inactiveStudents}</p>
               <p className="mt-1 text-xs text-gray-500">Never enrolled in a course</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -161,13 +161,13 @@ export default function AdminDashboardPage() {
                   <TrendingUp className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{avgCompletionRate}%</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{avgCompletionRate}%</p>
               <p className="mt-1 text-xs text-gray-500">Avg materials completed per course</p>
             </div>
           </div>
 
           {/* Charts — 2 columns */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             {/* New Registrations Over Time */}
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <h3 className="mb-4 text-sm font-medium text-gray-400">New Registrations</h3>
@@ -295,14 +295,14 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {topStudents.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                    <div key={i} className="flex flex-col gap-1 rounded-lg bg-slate-800/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">
                           {i + 1}
                         </span>
                         <span className="text-sm text-white">{s.name}</span>
                       </div>
-                      <div className="flex gap-4 text-xs text-gray-400">
+                      <div className="flex gap-4 text-xs text-gray-400 pl-9 sm:pl-0">
                         <span>{s.enrollments} courses</span>
                         <span>{s.materialsCompleted} completed</span>
                       </div>
@@ -320,14 +320,14 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {mostActiveRecently.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                    <div key={i} className="flex flex-col gap-1 rounded-lg bg-slate-800/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 text-xs font-bold text-green-400">
                           {i + 1}
                         </span>
                         <span className="text-sm text-white">{s.name}</span>
                       </div>
-                      <span className="text-xs text-gray-400">{s.completions} materials completed</span>
+                      <span className="text-xs text-gray-400 pl-9 sm:pl-0">{s.completions} materials completed</span>
                     </div>
                   ))}
                 </div>
@@ -338,9 +338,9 @@ export default function AdminDashboardPage() {
       )}
 
       {activeTab === 'instructors' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Instructor stat cards */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-400">Total Instructors</span>
@@ -348,7 +348,7 @@ export default function AdminDashboardPage() {
                   <Users className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{totalInstructors}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{totalInstructors}</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
@@ -357,7 +357,7 @@ export default function AdminDashboardPage() {
                   <DollarSign className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">${avgCoursePrice.toFixed(2)}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">${avgCoursePrice.toFixed(2)}</p>
               <p className="mt-1 text-xs text-gray-500">Across all paid courses</p>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -367,13 +367,13 @@ export default function AdminDashboardPage() {
                   <ClipboardList className="h-4 w-4" />
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-white">{pendingApplications}</p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">{pendingApplications}</p>
               <p className="mt-1 text-xs text-gray-500">Awaiting review</p>
             </div>
           </div>
 
           {/* Charts — 2 columns */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             {/* Top Instructors by Revenue */}
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <h3 className="mb-4 text-sm font-medium text-gray-400">Top Instructors by Revenue</h3>
@@ -499,14 +499,14 @@ export default function AdminDashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {topRatedInstructors.map((inst, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                    <div key={i} className="flex flex-col gap-1 rounded-lg bg-slate-800/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold text-amber-400">
                           {i + 1}
                         </span>
                         <span className="text-sm text-white">{inst.name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 pl-9 sm:pl-0">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                         <span className="text-sm font-medium text-white">{inst.avgRating}</span>
                         <span className="text-xs text-gray-500">({inst.reviewCount} reviews)</span>
