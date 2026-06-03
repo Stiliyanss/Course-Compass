@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { useAuth } from '../../context/AuthContext';
-import { Users, BookOpen, DollarSign, GraduationCap, Sparkles, UserX, TrendingUp } from 'lucide-react';
+import { Users, BookOpen, DollarSign, GraduationCap, Sparkles, UserX, TrendingUp, Star, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
@@ -34,7 +34,9 @@ export default function AdminDashboardPage() {
           totalStudents, activeStudents, inactiveStudents, avgCompletionRate,
           mostPopularCourses, enrollmentsPerMonth, registrationsPerMonth,
           enrollmentDistribution, topStudents, mostActiveRecently,
-          totalInstructors, topInstructors, revenuePerMonth, coursesByStatus } = data;
+          totalInstructors, topInstructors, revenuePerMonth, coursesByStatus,
+          topInstructorsByStudents, topRatedInstructors, bestSellingCourses,
+          avgCoursePrice, pendingApplications } = data;
 
   const sharedStats = [
     { label: 'Total Users',       value: totalUsers,       icon: Users,          color: 'purple' },
@@ -337,8 +339,8 @@ export default function AdminDashboardPage() {
 
       {activeTab === 'instructors' && (
         <div className="space-y-6">
-          {/* Instructor stat card */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* Instructor stat cards */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-400">Total Instructors</span>
@@ -347,6 +349,26 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <p className="mt-2 text-2xl font-bold text-white">{totalInstructors}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Avg Course Price</span>
+                <div className="rounded-lg border p-2 bg-green-500/10 text-green-400 border-green-500/20">
+                  <DollarSign className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">${avgCoursePrice.toFixed(2)}</p>
+              <p className="mt-1 text-xs text-gray-500">Across all paid courses</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Pending Applications</span>
+                <div className="rounded-lg border p-2 bg-amber-500/10 text-amber-400 border-amber-500/20">
+                  <ClipboardList className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{pendingApplications}</p>
+              <p className="mt-1 text-xs text-gray-500">Awaiting review</p>
             </div>
           </div>
 
@@ -381,6 +403,36 @@ export default function AdminDashboardPage() {
               />
             </div>
 
+            {/* Top Instructors by Students */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Top Instructors by Students</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: topInstructorsByStudents.map((i) => i.name),
+                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' } },
+                    gridLineColor: '#1e293b',
+                    allowDecimals: false,
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valueSuffix: ' students' },
+                  series: [{
+                    name: 'Students',
+                    data: topInstructorsByStudents.map((i) => i.students),
+                    color: '#60a5fa',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
             {/* Revenue Over Time */}
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <h3 className="mb-4 text-sm font-medium text-gray-400">Revenue Over Time</h3>
@@ -408,6 +460,61 @@ export default function AdminDashboardPage() {
                   credits: { enabled: false },
                 }}
               />
+            </div>
+
+            {/* Best Selling Courses */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Best Selling Courses</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: bestSellingCourses.map((c) => c.title),
+                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' }, format: '${value}' },
+                    gridLineColor: '#1e293b',
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valuePrefix: '$' },
+                  series: [{
+                    name: 'Revenue',
+                    data: bestSellingCourses.map((c) => c.revenue),
+                    color: '#34d399',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Top Rated Instructors */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Top Rated Instructors</h3>
+              {topRatedInstructors.length === 0 ? (
+                <p className="text-sm text-gray-500">No reviews yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {topRatedInstructors.map((inst, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/20 text-xs font-bold text-amber-400">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm text-white">{inst.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        <span className="text-sm font-medium text-white">{inst.avgRating}</span>
+                        <span className="text-xs text-gray-500">({inst.reviewCount} reviews)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Courses by Status */}
