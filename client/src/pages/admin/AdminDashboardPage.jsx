@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { useAuth } from '../../context/AuthContext';
 import { Users, BookOpen, DollarSign, GraduationCap, Sparkles } from 'lucide-react';
+import Highcharts from 'highcharts';
+import { HighchartsReact } from 'highcharts-react-official';
 import Spinner from '../../components/ui/Spinner';
 
 export default function AdminDashboardPage() {
@@ -27,7 +29,8 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { totalUsers, totalCourses, totalRevenue, totalEnrollments } = data;
+  const { totalUsers, totalCourses, totalRevenue, totalEnrollments,
+          totalStudents, activeStudents, mostPopularCourses, enrollmentsPerMonth } = data;
 
   const sharedStats = [
     { label: 'Total Users',       value: totalUsers,       icon: Users,          color: 'purple' },
@@ -105,7 +108,92 @@ export default function AdminDashboardPage() {
 
       {/* ── Tab content (Steps 4 & 5) ── */}
       {activeTab === 'students' && (
-        <div className="text-gray-400">Students tab content coming next...</div>
+        <div className="space-y-6">
+          {/* Student stat cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Total Students</span>
+                <div className="rounded-lg border p-2 bg-blue-500/10 text-blue-400 border-blue-500/20">
+                  <Users className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{totalStudents}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Active Students</span>
+                <div className="rounded-lg border p-2 bg-green-500/10 text-green-400 border-green-500/20">
+                  <GraduationCap className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{activeStudents}</p>
+              <p className="mt-1 text-xs text-gray-500">Students with at least one enrollment</p>
+            </div>
+          </div>
+
+          {/* Charts — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Most Popular Courses */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Most Popular Courses</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: mostPopularCourses.map((c) => c.title),
+                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' } },
+                    gridLineColor: '#1e293b',
+                    allowDecimals: false,
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valueSuffix: ' students' },
+                  series: [{
+                    name: 'Enrollments',
+                    data: mostPopularCourses.map((c) => c.enrollments),
+                    color: '#a78bfa',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Enrollments Over Time */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Enrollments Over Time</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'column', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: enrollmentsPerMonth.map((e) => e.month),
+                    labels: { style: { color: '#9ca3af' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' } },
+                    gridLineColor: '#1e293b',
+                    allowDecimals: false,
+                  },
+                  legend: { enabled: false },
+                  series: [{
+                    name: 'Enrollments',
+                    data: enrollmentsPerMonth.map((e) => e.count),
+                    color: '#60a5fa',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTab === 'instructors' && (
