@@ -13,6 +13,7 @@ import { supabase } from '../../lib/supabaseClient';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import MaterialPreview from '../../components/MaterialPreview';
+import MaterialComments from '../../components/MaterialComments';
 import SaleCountdown from '../../components/SaleCountdown';
 import { isSaleActive, getSalePrice } from '../../utils/sale';
 import StarRating from '../../components/StarRating';
@@ -59,6 +60,7 @@ export default function CourseDetailPage() {
   // When a student clicks a material, we store the material object + its signed URL
   // Setting this to null closes the modal
   const [preview, setPreview] = useState(null); // { material, signedUrl }
+  const [commentMaterial, setCommentMaterial] = useState(null); // material object for comments panel
 
   // Opens the preview modal for a material
   // 1. Gets a signed URL from Supabase (valid for 5 minutes)
@@ -271,6 +273,7 @@ export default function CourseDetailPage() {
                     section={section}
                     isEnrolled={isEnrolled}
                     onPreview={handlePreview}
+                    onComment={setCommentMaterial}
                     noteContent={notes[section.id] || ''}
                     onSaveNote={saveNoteMutation}
                     completedSet={completedSet}
@@ -378,6 +381,13 @@ export default function CourseDetailPage() {
           material={preview.material}
           signedUrl={preview.signedUrl}
           onClose={() => setPreview(null)}
+        />
+      )}
+      {/* Comments panel — slides in from the right */}
+      {commentMaterial && (
+        <MaterialComments
+          material={commentMaterial}
+          onClose={() => setCommentMaterial(null)}
         />
       )}
     </div>
@@ -682,7 +692,7 @@ function getMaterialIcon(fileType) {
  * This is a "preview" — no download links. Students can see what's
  * inside each section before purchasing the course.
  */
-function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNote, completedSet, onToggleProgress }) {
+function SectionPreview({ section, isEnrolled, onPreview, onComment, noteContent, onSaveNote, completedSet, onToggleProgress }) {
   const [open, setOpen] = useState(false);
   const materialCount = section.materials?.length || 0;
 
@@ -788,7 +798,7 @@ function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNot
                   )}
                 </div>
 
-                {/* Right side — preview/download buttons if enrolled, lock if not */}
+                {/* Right side — preview/download/comments buttons if enrolled, lock if not */}
                 {isEnrolled ? (
                   <div className="flex items-center gap-3">
                     <button
@@ -797,6 +807,13 @@ function SectionPreview({ section, isEnrolled, onPreview, noteContent, onSaveNot
                     >
                       <Eye className="h-4 w-4" />
                       <span className="text-xs">Preview</span>
+                    </button>
+                    <button
+                      onClick={() => onComment(material)}
+                      className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="text-xs">Comments</span>
                     </button>
                     <button
                       onClick={() => handleDownload(material.file_url, material.title)}
