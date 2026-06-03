@@ -4,7 +4,7 @@ export async function fetchAdminDashboard() {
   // ── 1. All profiles ──
   const { data: profiles, error: profilesErr } = await supabase
     .from('profiles')
-    .select('id, role, full_name');
+    .select('id, role, full_name, created_at');
 
   if (profilesErr) throw profilesErr;
 
@@ -30,6 +30,20 @@ export async function fetchAdminDashboard() {
     .eq('status', 'completed');
 
   if (payErr) throw payErr;
+
+  // ── 5. Course materials ──
+  const { data: materials, error: matErr } = await supabase
+    .from('course_materials')
+    .select('id, course_id');
+
+  if (matErr) throw matErr;
+
+  // ── 6. Material progress ──
+  const { data: progress, error: progErr } = await supabase
+    .from('material_progress')
+    .select('id, student_id, material_id, completed, completed_at');
+
+  if (progErr) throw progErr;
 
   // ═══════════════════════════════════════
   //  Shared stats (shown above tabs)
@@ -60,6 +74,90 @@ export async function fetchAdminDashboard() {
     enrollments.map((e) => e.enrolled_at),
     6
   );
+
+  // New registrations per month — last 6 months
+  const registrationsPerMonth = groupByMonth(
+    profiles.filter((p) => p.role === 'student').map((p) => p.created_at),
+    6
+  );
+
+  // Inactive students — registered but never enrolled
+  const enrolledStudentIds = new Set(enrollments.map((e) => e.student_id));
+  const inactiveStudents = profiles.filter(
+    (p) => p.role === 'student' && !enrolledStudentIds.has(p.id)
+  ).length;
+
+  // Enrollment distribution — how many students have 1, 2, 3, 4, 5+ courses
+  const enrollmentsPerStudent = {};
+  for (const e of enrollments) {
+    enrollmentsPerStudent[e.student_id] = (enrollmentsPerStudent[e.student_id] || 0) + 1;
+  }
+  const enrollmentDistribution = [
+    { label: '1 course', count: 0 },
+    { label: '2 courses', count: 0 },
+    { label: '3 courses', count: 0 },
+    { label: '4 courses', count: 0 },
+    { label: '5+ courses', count: 0 },
+  ];
+  for (const count of Object.values(enrollmentsPerStudent)) {
+    const idx = Math.min(count, 5) - 1;
+    enrollmentDistribution[idx].count++;
+  }
+
+  // Average completion rate — across all student-course pairs
+  const completedSet = new Set(
+    progress.filter((p) => p.completed).map((p) => p.material_id)
+  );
+  const materialsByCourse = {};
+  for (const m of materials) {
+    if (!materialsByCourse[m.course_id]) materialsByCourse[m.course_id] = [];
+    materialsByCourse[m.course_id].push(m.id);
+  }
+  let totalRates = 0;
+  let rateCount = 0;
+  for (const e of enrollments) {
+    const courseMats = materialsByCourse[e.course_id] || [];
+    if (courseMats.length === 0) continue;
+    const done = courseMats.filter((id) => completedSet.has(id)).length;
+    totalRates += done / courseMats.length;
+    rateCount++;
+  }
+  const avgCompletionRate = rateCount > 0 ? Math.round((totalRates / rateCount) * 100) : 0;
+
+  // Top students — by materials completed (tiebreak by enrollments)
+  const completedPerStudent = {};
+  for (const p of progress) {
+    if (p.completed) {
+      completedPerStudent[p.student_id] = (completedPerStudent[p.student_id] || 0) + 1;
+    }
+  }
+  const studentProfiles = profiles.filter((p) => p.role === 'student');
+  const topStudents = studentProfiles
+    .map((p) => ({
+      name: p.full_name || 'Unknown',
+      enrollments: enrollmentsPerStudent[p.id] || 0,
+      materialsCompleted: completedPerStudent[p.id] || 0,
+    }))
+    .sort((a, b) => b.materialsCompleted - a.materialsCompleted || b.enrollments - a.enrollments)
+    .slice(0, 5);
+
+  // Most active recently — last 30 days by completions
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentActivityMap = {};
+  for (const p of progress) {
+    if (p.completed && p.completed_at && new Date(p.completed_at) >= thirtyDaysAgo) {
+      recentActivityMap[p.student_id] = (recentActivityMap[p.student_id] || 0) + 1;
+    }
+  }
+  const mostActiveRecently = studentProfiles
+    .filter((p) => recentActivityMap[p.id])
+    .map((p) => ({
+      name: p.full_name || 'Unknown',
+      completions: recentActivityMap[p.id],
+    }))
+    .sort((a, b) => b.completions - a.completions)
+    .slice(0, 5);
 
   // ═══════════════════════════════════════
   //  Instructors tab
@@ -121,8 +219,14 @@ export async function fetchAdminDashboard() {
     // Students tab
     totalStudents,
     activeStudents,
+    inactiveStudents,
+    avgCompletionRate,
     mostPopularCourses,
     enrollmentsPerMonth,
+    registrationsPerMonth,
+    enrollmentDistribution,
+    topStudents,
+    mostActiveRecently,
     // Instructors tab
     totalInstructors,
     topInstructors,
