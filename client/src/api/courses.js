@@ -127,6 +127,53 @@ export async function fetchCourseById(id) {
 
 
 /**
+ * Fetch ALL courses across all instructors (admin only).
+ * Joins instructor profiles to get names.
+ * Also fetches enrollment counts for each course.
+ */
+export async function fetchAllCoursesAdmin() {
+  const { data: courses, error } = await supabase
+    .from('courses')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  // Fetch instructor profiles
+  const instructorIds = [...new Set(courses.map((c) => c.instructor_id))];
+  let instructors = [];
+  if (instructorIds.length > 0) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, avatar_url')
+      .in('id', instructorIds);
+    instructors = data || [];
+  }
+
+  // Fetch enrollment counts per course
+  const courseIds = courses.map((c) => c.id);
+  let enrollmentCounts = {};
+  if (courseIds.length > 0) {
+    const { data: enrollments } = await supabase
+      .from('enrollments')
+      .select('course_id')
+      .in('course_id', courseIds);
+
+    if (enrollments) {
+      for (const e of enrollments) {
+        enrollmentCounts[e.course_id] = (enrollmentCounts[e.course_id] || 0) + 1;
+      }
+    }
+  }
+
+  return courses.map((course) => ({
+    ...course,
+    instructor: instructors.find((i) => i.id === course.instructor_id) || null,
+    enrollmentCount: enrollmentCounts[course.id] || 0,
+  }));
+}
+
+/**
  * Create a new course for the currently logged-in instructor.
  *
  * The course starts as a 'draft' by default (set in the database schema:
