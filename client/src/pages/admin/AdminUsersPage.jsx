@@ -140,8 +140,10 @@ export default function AdminUsersPage() {
           <p className="mt-3 text-gray-400">No users found</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[600px]">
+        <>
+        {/* Desktop table — hidden on mobile */}
+        <div className="hidden overflow-hidden rounded-xl border border-slate-800 md:block">
+          <table className="w-full">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/80">
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -161,7 +163,6 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-slate-800">
               {filtered.map((user) => (
                 <tr key={user.id} className="bg-slate-900/30 hover:bg-slate-900/60 transition-colors">
-                  {/* User info */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {user.avatar_url ? (
@@ -181,21 +182,15 @@ export default function AdminUsersPage() {
                       </div>
                     </div>
                   </td>
-
-                  {/* Role badge */}
                   <td className="px-6 py-4">
                     <RoleBadge role={user.role} />
                   </td>
-
-                  {/* Joined date */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5 text-sm text-gray-400">
                       <Calendar className="h-3.5 w-3.5" />
                       {format(new Date(user.created_at), 'MMM d, yyyy')}
                     </div>
                   </td>
-
-                  {/* Actions */}
                   <td className="px-6 py-4 text-right">
                     {user.role === 'instructor' && (
                       <>
@@ -235,6 +230,71 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile cards — hidden on desktop */}
+        <div className="space-y-3 md:hidden">
+          {filtered.map((user) => (
+            <div key={user.id} className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <div className="flex items-center gap-3">
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.full_name}
+                    className="h-10 w-10 rounded-full object-cover border border-slate-700"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-600/20 text-sm font-bold text-purple-400">
+                    {user.full_name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-white truncate">{user.full_name || 'Unnamed'}</p>
+                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                </div>
+                <RoleBadge role={user.role} />
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(user.created_at), 'MMM d, yyyy')}
+                </div>
+                {user.role === 'instructor' && (
+                  <>
+                    {confirmId === user.id ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">Demote?</span>
+                        <Button
+                          variant="danger"
+                          onClick={() => handleDemote(user.id)}
+                          loading={roleMutation.isPending}
+                          className="text-xs px-2 py-1"
+                        >
+                          Yes
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setConfirmId(null)}
+                          className="text-xs px-2 py-1"
+                        >
+                          No
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        onClick={() => setConfirmId(user.id)}
+                        className="text-xs px-3 py-1"
+                      >
+                        Demote
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   );
