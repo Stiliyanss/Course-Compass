@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { useAuth } from '../../context/AuthContext';
-import { Users, BookOpen, DollarSign, GraduationCap, Sparkles } from 'lucide-react';
+import { Users, BookOpen, DollarSign, GraduationCap, Sparkles, UserX, TrendingUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Highcharts from 'highcharts';
 import { HighchartsReact } from 'highcharts-react-official';
 import Spinner from '../../components/ui/Spinner';
@@ -30,7 +31,9 @@ export default function AdminDashboardPage() {
   }
 
   const { totalUsers, totalCourses, totalRevenue, totalEnrollments,
-          totalStudents, activeStudents, mostPopularCourses, enrollmentsPerMonth } = data;
+          totalStudents, activeStudents, inactiveStudents, avgCompletionRate,
+          mostPopularCourses, enrollmentsPerMonth, registrationsPerMonth,
+          enrollmentDistribution, topStudents, mostActiveRecently } = data;
 
   const sharedStats = [
     { label: 'Total Users',       value: totalUsers,       icon: Users,          color: 'purple' },
@@ -106,11 +109,19 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* ── Tab content (Steps 4 & 5) ── */}
+      {/* ── Tab content ── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.25, ease: 'easeInOut' }}
+        >
       {activeTab === 'students' && (
         <div className="space-y-6">
           {/* Student stat cards */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-400">Total Students</span>
@@ -128,23 +139,43 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <p className="mt-2 text-2xl font-bold text-white">{activeStudents}</p>
-              <p className="mt-1 text-xs text-gray-500">Students with at least one enrollment</p>
+              <p className="mt-1 text-xs text-gray-500">With at least one enrollment</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Inactive Students</span>
+                <div className="rounded-lg border p-2 bg-red-500/10 text-red-400 border-red-500/20">
+                  <UserX className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{inactiveStudents}</p>
+              <p className="mt-1 text-xs text-gray-500">Never enrolled in a course</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Avg Completion</span>
+                <div className="rounded-lg border p-2 bg-amber-500/10 text-amber-400 border-amber-500/20">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{avgCompletionRate}%</p>
+              <p className="mt-1 text-xs text-gray-500">Avg materials completed per course</p>
             </div>
           </div>
 
           {/* Charts — 2 columns */}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Most Popular Courses */}
+            {/* New Registrations Over Time */}
             <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-              <h3 className="mb-4 text-sm font-medium text-gray-400">Most Popular Courses</h3>
+              <h3 className="mb-4 text-sm font-medium text-gray-400">New Registrations</h3>
               <HighchartsReact
                 highcharts={Highcharts}
                 options={{
-                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  chart: { type: 'line', backgroundColor: 'transparent', height: 260 },
                   title: { text: '' },
                   xAxis: {
-                    categories: mostPopularCourses.map((c) => c.title),
-                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                    categories: registrationsPerMonth.map((r) => r.month),
+                    labels: { style: { color: '#9ca3af' } },
                   },
                   yAxis: {
                     title: { text: '' },
@@ -153,11 +184,11 @@ export default function AdminDashboardPage() {
                     allowDecimals: false,
                   },
                   legend: { enabled: false },
-                  tooltip: { valueSuffix: ' students' },
                   series: [{
-                    name: 'Enrollments',
-                    data: mostPopularCourses.map((c) => c.enrollments),
-                    color: '#a78bfa',
+                    name: 'Registrations',
+                    data: registrationsPerMonth.map((r) => r.count),
+                    color: '#34d399',
+                    marker: { fillColor: '#34d399', radius: 4 },
                   }],
                   credits: { enabled: false },
                 }}
@@ -192,6 +223,113 @@ export default function AdminDashboardPage() {
                 }}
               />
             </div>
+
+            {/* Most Popular Courses */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Most Popular Courses</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: mostPopularCourses.map((c) => c.title),
+                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' } },
+                    gridLineColor: '#1e293b',
+                    allowDecimals: false,
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valueSuffix: ' students' },
+                  series: [{
+                    name: 'Enrollments',
+                    data: mostPopularCourses.map((c) => c.enrollments),
+                    color: '#a78bfa',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Enrollment Distribution */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Enrollment Distribution</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'column', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: enrollmentDistribution.map((d) => d.label),
+                    labels: { style: { color: '#9ca3af' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' } },
+                    gridLineColor: '#1e293b',
+                    allowDecimals: false,
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valueSuffix: ' students' },
+                  series: [{
+                    name: 'Students',
+                    data: enrollmentDistribution.map((d) => d.count),
+                    color: '#fbbf24',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Top Students */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Top Students</h3>
+              {topStudents.length === 0 ? (
+                <p className="text-sm text-gray-500">No student activity yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {topStudents.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm text-white">{s.name}</span>
+                      </div>
+                      <div className="flex gap-4 text-xs text-gray-400">
+                        <span>{s.enrollments} courses</span>
+                        <span>{s.materialsCompleted} completed</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Most Active Recently */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Most Active (Last 30 Days)</h3>
+              {mostActiveRecently.length === 0 ? (
+                <p className="text-sm text-gray-500">No recent activity</p>
+              ) : (
+                <div className="space-y-3">
+                  {mostActiveRecently.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg bg-slate-800/50 px-3 py-2">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 text-xs font-bold text-green-400">
+                          {i + 1}
+                        </span>
+                        <span className="text-sm text-white">{s.name}</span>
+                      </div>
+                      <span className="text-xs text-gray-400">{s.completions} materials completed</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -199,6 +337,8 @@ export default function AdminDashboardPage() {
       {activeTab === 'instructors' && (
         <div className="text-gray-400">Instructors tab content coming next...</div>
       )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
