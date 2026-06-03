@@ -33,7 +33,8 @@ export default function AdminDashboardPage() {
   const { totalUsers, totalCourses, totalRevenue, totalEnrollments,
           totalStudents, activeStudents, inactiveStudents, avgCompletionRate,
           mostPopularCourses, enrollmentsPerMonth, registrationsPerMonth,
-          enrollmentDistribution, topStudents, mostActiveRecently } = data;
+          enrollmentDistribution, topStudents, mostActiveRecently,
+          totalInstructors, topInstructors, revenuePerMonth, coursesByStatus } = data;
 
   const sharedStats = [
     { label: 'Total Users',       value: totalUsers,       icon: Users,          color: 'purple' },
@@ -335,7 +336,112 @@ export default function AdminDashboardPage() {
       )}
 
       {activeTab === 'instructors' && (
-        <div className="text-gray-400">Instructors tab content coming next...</div>
+        <div className="space-y-6">
+          {/* Instructor stat card */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Total Instructors</span>
+                <div className="rounded-lg border p-2 bg-purple-500/10 text-purple-400 border-purple-500/20">
+                  <Users className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-white">{totalInstructors}</p>
+            </div>
+          </div>
+
+          {/* Charts — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Top Instructors by Revenue */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Top Instructors by Revenue</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: topInstructors.map((i) => i.name),
+                    labels: { style: { color: '#9ca3af', fontSize: '11px' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' }, format: '${value}' },
+                    gridLineColor: '#1e293b',
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valuePrefix: '$' },
+                  series: [{
+                    name: 'Revenue',
+                    data: topInstructors.map((i) => i.revenue),
+                    color: '#a78bfa',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Revenue Over Time */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Revenue Over Time</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'column', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  xAxis: {
+                    categories: revenuePerMonth.map((r) => r.month),
+                    labels: { style: { color: '#9ca3af' } },
+                  },
+                  yAxis: {
+                    title: { text: '' },
+                    labels: { style: { color: '#9ca3af' }, format: '${value}' },
+                    gridLineColor: '#1e293b',
+                  },
+                  legend: { enabled: false },
+                  tooltip: { valuePrefix: '$' },
+                  series: [{
+                    name: 'Revenue',
+                    data: revenuePerMonth.map((r) => r.total),
+                    color: '#fbbf24',
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+
+            {/* Courses by Status */}
+            <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+              <h3 className="mb-4 text-sm font-medium text-gray-400">Courses by Status</h3>
+              <HighchartsReact
+                highcharts={Highcharts}
+                options={{
+                  chart: { type: 'pie', backgroundColor: 'transparent', height: 260 },
+                  title: { text: '' },
+                  plotOptions: {
+                    pie: {
+                      borderWidth: 0,
+                      dataLabels: {
+                        enabled: true,
+                        format: '{point.name}: {point.y}',
+                        style: { color: '#9ca3af', textOutline: 'none', fontSize: '12px' },
+                      },
+                    },
+                  },
+                  series: [{
+                    name: 'Courses',
+                    data: [
+                      { name: 'Published', y: coursesByStatus.published, color: '#34d399' },
+                      { name: 'Draft',     y: coursesByStatus.draft,     color: '#fbbf24' },
+                      { name: 'Archived',  y: coursesByStatus.archived,  color: '#f87171' },
+                    ],
+                  }],
+                  credits: { enabled: false },
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
         </motion.div>
       </AnimatePresence>
