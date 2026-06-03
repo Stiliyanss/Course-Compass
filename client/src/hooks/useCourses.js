@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchCourses, fetchCourseById, fetchInstructorCourses, createCourse, updateCourse, deleteCourse } from '../api/courses';
+import { fetchCourses, fetchCourseById, fetchInstructorCourses, fetchAllCoursesAdmin, createCourse, updateCourse, deleteCourse } from '../api/courses';
 
 /**
  * Hook to fetch all published courses.
@@ -27,6 +27,18 @@ export function useCourse(id) {
 
     // Don't run the query if id is missing (e.g. page is still loading the param)
     enabled: !!id,
+  });
+}
+
+// ── Admin hooks ──────────────────────────────────────────────
+
+/**
+ * Fetch all courses across all instructors (admin only).
+ */
+export function useAllCoursesAdmin() {
+  return useQuery({
+    queryKey: ['admin-courses'],
+    queryFn: fetchAllCoursesAdmin,
   });
 }
 
