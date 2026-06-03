@@ -40,9 +40,9 @@ export default function StudentDashboardPage() {
   const coursesFinished = Object.values(progress).filter((p) => p.total > 0 && p.completed === p.total).length;
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 space-y-4 sm:p-6 sm:space-y-8">
       {/* ── Hero welcome banner ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 p-8">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/40 p-5 sm:p-8">
         {/* Decorative glow orbs */}
         <div className="absolute -top-20 -right-20 h-60 w-60 rounded-full bg-purple-600/10 blur-3xl" />
         <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-blue-600/10 blur-3xl" />
@@ -54,7 +54,7 @@ export default function StudentDashboardPage() {
               Learning Dashboard
             </div>
             <h1
-              className="text-3xl font-bold text-white md:text-4xl"
+              className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}
@@ -147,13 +147,13 @@ export default function StudentDashboardPage() {
       />
 
       {/* ── Main content grid ── */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Course progress — 2/3 width */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-purple-400" />
-              <h2 className="text-lg font-semibold text-white">My Courses</h2>
+              <h2 className="text-base sm:text-lg font-semibold text-white">My Courses</h2>
             </div>
             {enrollments.length > 0 && (
               <Link
@@ -193,11 +193,11 @@ export default function StudentDashboardPage() {
                   <Link
                     key={enrollment.course_id}
                     to={`/courses/${enrollment.course_id}`}
-                    className="group block rounded-xl border border-slate-800 bg-slate-900/50 p-4 hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.06)] transition-all duration-300"
+                    className="group block rounded-xl border border-slate-800 bg-slate-900/50 p-3 sm:p-4 hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.06)] transition-all duration-300"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       {/* Thumbnail */}
-                      <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-800">
+                      <div className="hidden sm:block h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-800">
                         {enrollment.course?.image_url ? (
                           <img
                             src={enrollment.course.image_url}
@@ -213,10 +213,15 @@ export default function StudentDashboardPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-white truncate pr-4 group-hover:text-purple-300 transition-colors">
-                            {enrollment.course?.title || 'Unknown course'}
-                          </h3>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-sm sm:text-base text-white truncate group-hover:text-purple-300 transition-colors">
+                              {enrollment.course?.title || 'Unknown course'}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              by {enrollment.course?.instructor_name}
+                            </p>
+                          </div>
                           <div className={`shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${
                             isComplete
                               ? 'bg-green-500/10 text-green-400 border border-green-500/20'
@@ -226,12 +231,9 @@ export default function StudentDashboardPage() {
                             {percent}%
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mb-3">
-                          by {enrollment.course?.instructor_name}
-                        </p>
 
                         {/* Progress bar */}
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                        <div className="relative mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-800">
                           <div
                             className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out ${
                               isComplete
@@ -269,7 +271,7 @@ export default function StudentDashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-400" />
-            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-white">Recent Activity</h2>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden">
@@ -288,7 +290,7 @@ export default function StudentDashboardPage() {
                   return (
                     <div
                       key={activity.materialId}
-                      className={`flex items-start gap-3 px-4 py-3.5 hover:bg-slate-800/30 transition-colors ${
+                      className={`flex items-start gap-2 sm:gap-3 px-3 py-3 sm:px-4 sm:py-3.5 hover:bg-slate-800/30 transition-colors ${
                         index < recentActivity.length - 1 ? 'border-b border-slate-800/50' : ''
                       }`}
                     >
@@ -307,7 +309,7 @@ export default function StudentDashboardPage() {
                         </p>
                       </div>
 
-                      <span className="shrink-0 mt-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-400 border border-green-500/20">
+                      <span className="hidden sm:inline shrink-0 mt-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-400 border border-green-500/20">
                         Done
                       </span>
                     </div>
@@ -327,17 +329,17 @@ export default function StudentDashboardPage() {
  */
 function StatCard({ icon: Icon, label, value, gradient, borderColor, iconBg, color, glowColor }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${borderColor} bg-gradient-to-br ${gradient} p-5 ${glowColor}`}>
+    <div className={`relative overflow-hidden rounded-2xl border ${borderColor} bg-gradient-to-br ${gradient} p-3 sm:p-5 ${glowColor}`}>
       {/* Subtle top glow line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-400">{label}</p>
-          <p className={`mt-2 text-3xl font-bold ${color}`}>{value}</p>
+          <p className="text-xs sm:text-sm text-gray-400">{label}</p>
+          <p className={`mt-2 text-2xl sm:text-3xl font-bold ${color}`}>{value}</p>
         </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} border border-white/5`}>
-          <Icon className={`h-6 w-6 ${color}`} />
+        <div className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl ${iconBg} border border-white/5`}>
+          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
         </div>
       </div>
     </div>
@@ -369,13 +371,13 @@ function WeeklyGoalCard({ weeklyCompleted, goal, onSave }) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
       <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-cyan-600/5 blur-3xl" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
-      <div className="relative flex items-center gap-6">
+      <div className="relative flex items-center gap-4 sm:gap-6">
         {/* Progress ring */}
-        <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+        <div className="relative flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center">
           <svg className="absolute h-full w-full -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="7" className="text-slate-800" />
             {hasGoal && (
