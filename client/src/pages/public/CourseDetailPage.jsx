@@ -169,7 +169,7 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-12">
       {/* Back link */}
       <Link
         to="/courses"
@@ -179,9 +179,9 @@ export default function CourseDetailPage() {
         Back to courses
       </Link>
 
-      <div className="grid gap-10 lg:grid-cols-3">
+      <div className="grid gap-6 sm:gap-10 lg:grid-cols-3">
         {/* Left column — course info (takes 2/3 on large screens) */}
-        <div className="space-y-8 lg:col-span-2">
+        <div className="space-y-6 sm:space-y-8 lg:col-span-2">
           {/* Thumbnail */}
           <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
             {course.image_url ? (
@@ -199,7 +199,7 @@ export default function CourseDetailPage() {
 
           {/* Title */}
           <h1
-            className="text-3xl font-bold text-white md:text-4xl"
+            className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {course.title}
@@ -319,24 +319,24 @@ export default function CourseDetailPage() {
 
         {/* Right column — purchase card (sticky on scroll) */}
         <div className="lg:col-span-1">
-          <div className="sticky top-24 rounded-xl border border-slate-800 bg-slate-900/70 p-6 space-y-5">
+          <div className="sticky top-20 rounded-xl border border-slate-800 bg-slate-900/70 p-4 space-y-5 sm:top-24 sm:p-6">
             {/* Price */}
             <div className="text-center space-y-2">
               {Number(course.price) === 0 ? (
-                <span className="text-3xl font-bold text-white">Free</span>
+                <span className="text-2xl font-bold text-white sm:text-3xl">Free</span>
               ) : isSaleActive(course) ? (
                 <>
                   <div className="inline-block rounded-full bg-green-500/20 border border-green-500/30 px-3 py-1 text-sm font-bold text-green-400">
                     {Number(course.discount_percent)}% OFF
                   </div>
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl text-gray-500 line-through">${Number(course.price).toFixed(2)}</span>
-                    <span className="text-3xl font-bold text-green-400">${getSalePrice(course).toFixed(2)}</span>
+                    <span className="text-lg text-gray-500 line-through sm:text-xl">${Number(course.price).toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-green-400 sm:text-3xl">${getSalePrice(course).toFixed(2)}</span>
                   </div>
                   <SaleCountdown saleEndsAt={course.sale_ends_at} size="lg" />
                 </>
               ) : (
-                <span className="text-3xl font-bold text-white">${Number(course.price).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-white sm:text-3xl">${Number(course.price).toFixed(2)}</span>
               )}
             </div>
 
