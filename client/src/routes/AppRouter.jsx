@@ -24,6 +24,7 @@ import InstructorDashboardPage from '../pages/instructor/InstructorDashboardPage
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 import AdminUsersPage from '../pages/admin/AdminUsersPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import AdminCoursesPage from '../pages/admin/AdminCoursesPage';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -142,6 +143,10 @@ const router = createBrowserRouter([
           {
             path: '/admin/users',
             element: <AdminUsersPage />,
+          },
+          {
+            path: '/admin/courses',
+            element: <AdminCoursesPage />,
           },
           {
             path: '/admin/applications',

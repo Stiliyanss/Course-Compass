@@ -89,6 +89,7 @@ export function useUpdateCourse() {
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] });
       queryClient.invalidateQueries({ queryKey: ['course'] });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
     },
   });
 }
@@ -105,6 +106,7 @@ export function useDeleteCourse() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructor-courses'] });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
     },
   });
 }
