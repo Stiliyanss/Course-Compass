@@ -105,9 +105,9 @@ export default function ManageSectionsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <button
           onClick={() => navigate('/instructor/courses')}
           className="mb-4 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
@@ -116,7 +116,7 @@ export default function ManageSectionsPage() {
           Back to courses
         </button>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1
               className="text-2xl font-bold text-white md:text-3xl"
@@ -129,7 +129,7 @@ export default function ManageSectionsPage() {
             </p>
           </div>
 
-          <Button onClick={() => setShowNewSection(true)}>
+          <Button onClick={() => setShowNewSection(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Section
           </Button>
@@ -140,7 +140,7 @@ export default function ManageSectionsPage() {
       {showNewSection && (
         <form
           onSubmit={handleCreateSection}
-          className="mb-6 flex items-center gap-3 rounded-xl border border-purple-500/30 bg-purple-500/5 p-4"
+          className="mb-6 flex flex-col gap-3 rounded-xl border border-purple-500/30 bg-purple-500/5 p-4 sm:flex-row sm:items-center"
         >
           <input
             type="text"
@@ -314,7 +314,7 @@ function SectionCard({ section, courseId, sectionNumber }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
       {/* Section header */}
-      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-800">
+      <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4 border-b border-slate-800">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -407,7 +407,7 @@ function SectionCard({ section, courseId, sectionNumber }) {
 
       {/* Section content — materials list + upload */}
       {isOpen && (
-        <div className="px-5 py-4">
+        <div className="px-3 py-3 sm:px-5 sm:py-4">
           {/* Materials list — wrapped in drag and drop context */}
           {section.materials?.length > 0 && (
             <DndContext

@@ -22,14 +22,14 @@ const perks = [
 
 export default function BecomeInstructor() {
   return (
-    <section className="relative overflow-hidden border-t border-slate-800 py-20">
+    <section className="relative overflow-hidden border-t border-slate-800 py-12 sm:py-20">
       {/* Background accents */}
       <div className="absolute top-0 right-1/4 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
       <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-purple-600/10 blur-3xl" />
 
-      <div className="relative mx-auto max-w-7xl px-6">
-        <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/30 p-10 md:p-14">
-          <div className="grid items-center gap-10 md:grid-cols-2">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/30 p-5 sm:p-10 md:p-14">
+          <div className="grid items-center gap-6 sm:gap-10 md:grid-cols-2">
             {/* Left side — message */}
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm text-amber-400">
@@ -37,7 +37,7 @@ export default function BecomeInstructor() {
                 Share your knowledge
               </div>
               <h2
-                className="text-3xl font-bold text-white md:text-4xl"
+                className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 Got expertise?
