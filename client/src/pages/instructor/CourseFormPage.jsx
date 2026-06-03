@@ -185,7 +185,7 @@ export default function CourseFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl py-10 px-6">
+    <div className="mx-auto max-w-2xl py-6 px-3 sm:py-10 sm:px-6">
       {/* Back link */}
       <button
         onClick={() => navigate('/instructor/courses')}
@@ -237,7 +237,7 @@ export default function CourseFormPage() {
         </div>
 
         {/* Price + Duration */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
             label="Price ($)"
             name="price"

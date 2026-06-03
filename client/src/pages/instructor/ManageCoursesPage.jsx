@@ -65,9 +65,9 @@ export default function ManageCoursesPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
             className="text-2xl font-bold text-white md:text-3xl"
@@ -88,7 +88,7 @@ export default function ManageCoursesPage() {
       </div>
 
       {/* Stats */}
-      <div className="mb-8 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
         <StatCard
           label="Draft"
           count={courses.filter((c) => c.status === 'draft').length}
@@ -188,11 +188,11 @@ function CourseRow({
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
+      <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
         {/* Left — course info */}
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 sm:gap-4">
           {/* Thumbnail */}
-          <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-800">
+          <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-800 bg-slate-800 sm:h-16 sm:w-24">
             {course.image_url ? (
               <img src={course.image_url} alt={course.title} className="h-full w-full object-cover" />
             ) : (
@@ -204,7 +204,7 @@ function CourseRow({
 
           <div className="min-w-0">
             <h3 className="font-semibold text-white truncate">{course.title}</h3>
-            <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-3 sm:text-sm">
               <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${style.badge}`}>
                 {style.label}
               </span>
@@ -227,7 +227,7 @@ function CourseRow({
         </div>
 
         {/* Right — actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Status toggle buttons */}
           {course.status === 'draft' && (
             <Button
@@ -358,7 +358,7 @@ function StudentListModal({ courseId, courseName, students, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
+        className="relative mx-3 w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:mx-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
