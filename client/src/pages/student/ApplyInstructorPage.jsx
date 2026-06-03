@@ -61,9 +61,9 @@ export default function ApplyInstructorPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl py-10 px-6">
+    <div className="mx-auto max-w-4xl py-6 px-3 sm:py-10 sm:px-6">
       {/* Header with glow effect */}
-      <div className="relative mb-10">
+      <div className="relative mb-6 sm:mb-10">
         <div className="absolute -top-10 left-1/4 h-40 w-40 rounded-full bg-purple-600/10 blur-3xl" />
         <div className="relative">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-sm text-purple-400">
@@ -71,7 +71,7 @@ export default function ApplyInstructorPage() {
             Instructor Application
           </div>
           <h1
-            className="text-3xl font-bold text-white md:text-4xl"
+            className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Become an Instructor
@@ -82,10 +82,10 @@ export default function ApplyInstructorPage() {
         </div>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-5">
+      <div className="grid gap-6 sm:gap-10 lg:grid-cols-5">
         {/* Left — Form (3/5) */}
         <div className="lg:col-span-3">
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
             <Field
               label="About You"
               name="bio"
@@ -250,9 +250,9 @@ function ApplicationStatus({ application, onRetry, isRetrying }) {
   const Icon = config.icon;
 
   return (
-    <div className="mx-auto max-w-3xl py-10 px-6">
+    <div className="mx-auto max-w-3xl py-6 px-3 sm:py-10 sm:px-6">
       {/* Header */}
-      <div className="relative mb-10">
+      <div className="relative mb-6 sm:mb-10">
         <div className={`absolute -top-10 left-1/4 h-40 w-40 rounded-full ${config.glow} blur-3xl`} />
         <h1
           className="relative text-3xl font-bold text-white md:text-4xl"
@@ -263,9 +263,9 @@ function ApplicationStatus({ application, onRetry, isRetrying }) {
       </div>
 
       {/* Status card */}
-      <div className={`relative overflow-hidden rounded-xl border ${config.border} ${config.bg} p-8`}>
+      <div className={`relative overflow-hidden rounded-xl border ${config.border} ${config.bg} p-5 sm:p-8`}>
         <div className="absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-white/5 blur-2xl" />
-        <div className="relative flex items-start gap-5">
+        <div className="relative flex items-start gap-4 sm:gap-5">
           <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${config.bg} ${config.border} border`}>
             <Icon className={`h-7 w-7 ${config.color}`} />
           </div>
@@ -304,7 +304,7 @@ function ApplicationStatus({ application, onRetry, isRetrying }) {
 
 function Detail({ label, value }) {
   return (
-    <div className="border-b border-slate-800 bg-slate-900/50 px-6 py-4 last:border-b-0">
+    <div className="border-b border-slate-800 bg-slate-900/50 px-4 py-3 sm:px-6 sm:py-4 last:border-b-0">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
       <p className="mt-1.5 text-gray-300 whitespace-pre-line">{value}</p>
     </div>
