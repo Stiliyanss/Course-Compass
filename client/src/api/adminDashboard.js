@@ -45,6 +45,20 @@ export async function fetchAdminDashboard() {
 
   if (progErr) throw progErr;
 
+  // ── 7. Course reviews ──
+  const { data: reviews, error: revErr } = await supabase
+    .from('course_reviews')
+    .select('id, course_id, rating');
+
+  if (revErr) throw revErr;
+
+  // ── 8. Instructor applications ──
+  const { data: applications, error: appErr } = await supabase
+    .from('instructor_applications')
+    .select('id, status');
+
+  if (appErr) throw appErr;
+
   // ═══════════════════════════════════════
   //  Shared stats (shown above tabs)
   // ═══════════════════════════════════════
@@ -210,6 +224,61 @@ export async function fetchAdminDashboard() {
     }
   }
 
+  // Top instructors by students — unique student count per instructor
+  const studentsPerInstructor = {};
+  for (const e of enrollments) {
+    const instrId = courseInstructorMap[e.course_id];
+    if (instrId) {
+      if (!studentsPerInstructor[instrId]) studentsPerInstructor[instrId] = new Set();
+      studentsPerInstructor[instrId].add(e.student_id);
+    }
+  }
+  const topInstructorsByStudents = instructorProfiles
+    .map((p) => ({
+      name: p.full_name || 'Unknown',
+      students: studentsPerInstructor[p.id]?.size || 0,
+    }))
+    .sort((a, b) => b.students - a.students)
+    .slice(0, 5);
+
+  // Top rated instructors — by avg review rating
+  const ratingsByInstructor = {};
+  for (const r of reviews) {
+    const instrId = courseInstructorMap[r.course_id];
+    if (instrId) {
+      if (!ratingsByInstructor[instrId]) ratingsByInstructor[instrId] = [];
+      ratingsByInstructor[instrId].push(r.rating);
+    }
+  }
+  const topRatedInstructors = instructorProfiles
+    .filter((p) => ratingsByInstructor[p.id]?.length > 0)
+    .map((p) => {
+      const ratings = ratingsByInstructor[p.id];
+      const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+      return { name: p.full_name || 'Unknown', avgRating: Math.round(avg * 10) / 10, reviewCount: ratings.length };
+    })
+    .sort((a, b) => b.avgRating - a.avgRating || b.reviewCount - a.reviewCount)
+    .slice(0, 5);
+
+  // Best selling courses — top 5 by revenue
+  const revenuePerCourse = {};
+  for (const p of payments) {
+    revenuePerCourse[p.course_id] = (revenuePerCourse[p.course_id] || 0) + (p.amount || 0);
+  }
+  const bestSellingCourses = courses
+    .map((c) => ({ title: c.title, revenue: revenuePerCourse[c.id] || 0 }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // Avg course price — average of paid courses only
+  const paidCourses = courses.filter((c) => c.price > 0);
+  const avgCoursePrice = paidCourses.length > 0
+    ? Math.round(paidCourses.reduce((s, c) => s + c.price, 0) / paidCourses.length * 100) / 100
+    : 0;
+
+  // Pending applications
+  const pendingApplications = applications.filter((a) => a.status === 'pending').length;
+
   return {
     // Shared
     totalUsers,
@@ -232,6 +301,11 @@ export async function fetchAdminDashboard() {
     topInstructors,
     revenuePerMonth,
     coursesByStatus,
+    topInstructorsByStudents,
+    topRatedInstructors,
+    bestSellingCourses,
+    avgCoursePrice,
+    pendingApplications,
   };
 }
 
