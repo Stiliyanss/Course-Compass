@@ -75,7 +75,7 @@ export default function SetSaleModal({ course, onClose, updateMutation }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
+        className="relative mx-3 w-full max-w-md overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:mx-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -145,7 +145,7 @@ export default function SetSaleModal({ course, onClose, updateMutation }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-800 px-6 py-4">
+        <div className="flex flex-col-reverse gap-3 border-t border-slate-800 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           {hasActiveSale ? (
             <button
               onClick={handleRemove}

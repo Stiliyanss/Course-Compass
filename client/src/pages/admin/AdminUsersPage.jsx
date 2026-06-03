@@ -64,9 +64,9 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <h1
           className="text-2xl font-bold text-white md:text-3xl"
           style={{ fontFamily: "'Playfair Display', serif" }}
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Stats */}
-      <div className="mb-8 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
         <StatCard
           label="Students"
           count={users.filter((u) => u.role === 'student').length}
@@ -140,8 +140,8 @@ export default function AdminUsersPage() {
           <p className="mt-3 text-gray-400">No users found</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-800">
-          <table className="w-full">
+        <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/80">
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
