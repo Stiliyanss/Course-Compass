@@ -23,6 +23,7 @@ import ManageSectionsPage from '../pages/instructor/ManageSectionsPage';
 import InstructorDashboardPage from '../pages/instructor/InstructorDashboardPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 import AdminUsersPage from '../pages/admin/AdminUsersPage';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 
 const router = createBrowserRouter([
   // Public routes — wrapped with Navbar + Footer
@@ -136,7 +137,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/admin/dashboard',
-            element: <div className="text-white">Admin Dashboard (coming soon)</div>,
+            element: <AdminDashboardPage />,
           },
           {
             path: '/admin/users',
