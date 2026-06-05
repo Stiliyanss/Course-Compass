@@ -1,12 +1,12 @@
 // Supabase Edge Function: ai-chat
 //
-// Proxies chat messages to the Gemini API so the API key stays server-side.
+// Proxies chat messages to the Groq API so the API key stays server-side.
 //
 // Flow:
 // 1. Browser sends: POST /ai-chat { messages: [{ role, content }] }
 // 2. This function verifies the user is authenticated
-// 3. Forwards the conversation to Gemini with a system prompt
-// 4. Returns Gemini's response to the browser
+// 3. Forwards the conversation to Groq (Llama 3.3 70B) with a system prompt
+// 4. Returns the response to the browser
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
@@ -133,46 +133,42 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Step 3: Call the Gemini API ──
-    // Convert our messages format to Gemini's format:
-    // Gemini uses "user" and "model" roles (not "assistant")
-    // Gemini uses "parts" array with "text" field (not "content" string)
-    const geminiMessages = messages.map(
-      (msg: { role: string; content: string }) => ({
-        role: msg.role === "assistant" ? "model" : "user",
-        parts: [{ text: msg.content }],
-      })
-    );
-
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    // ── Step 3: Call the Groq API ──
+    // Groq uses the OpenAI-compatible format (same roles: user/assistant)
+    const apiKey = Deno.env.get("GROQ_API_KEY");
+    const groqResponse = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
-          },
-          contents: geminiMessages,
-          generationConfig: {
-            maxOutputTokens: 1024,
-          },
+          model: "llama-3.3-70b-versatile",
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            ...messages.map((msg: { role: string; content: string }) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+          ],
         }),
       }
     );
 
-    if (!geminiResponse.ok) {
-      const errorBody = await geminiResponse.text();
-      console.error("Gemini API error:", geminiResponse.status, errorBody);
-      throw new Error(`Gemini API returned ${geminiResponse.status}`);
+    if (!groqResponse.ok) {
+      const errorBody = await groqResponse.text();
+      console.error("Groq API error:", groqResponse.status, errorBody);
+      throw new Error(`Groq API returned ${groqResponse.status}`);
     }
 
-    const geminiData = await geminiResponse.json();
+    const groqData = await groqResponse.json();
 
-    // Extract the text from Gemini's response
+    // Extract the text from Groq's response
     const assistantMessage =
-      geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      groqData.choices?.[0]?.message?.content || "";
 
     // ── Step 4: Return the response ──
     return new Response(
