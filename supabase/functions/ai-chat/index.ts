@@ -1,14 +1,13 @@
 // Supabase Edge Function: ai-chat
 //
-// Proxies chat messages to the Claude API so the API key stays server-side.
+// Proxies chat messages to the Gemini API so the API key stays server-side.
 //
 // Flow:
 // 1. Browser sends: POST /ai-chat { messages: [{ role, content }] }
 // 2. This function verifies the user is authenticated
-// 3. Forwards the conversation to Claude with a system prompt
-// 4. Returns Claude's response to the browser
+// 3. Forwards the conversation to Gemini with a system prompt
+// 4. Returns Gemini's response to the browser
 
-import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 // CORS headers — needed because the browser (localhost:5173) calls this
@@ -19,7 +18,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// System prompt — tells Claude about the Course Compass platform
+// System prompt — tells Gemini about the Course Compass platform
 const SYSTEM_PROMPT = `You are a helpful assistant for Course Compass, an online course marketplace platform.
 
 The platform has three user roles:
@@ -134,24 +133,46 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Step 3: Call the Claude API ──
-    const anthropic = new Anthropic({
-      apiKey: Deno.env.get("ANTHROPIC_API_KEY"),
-    });
+    // ── Step 3: Call the Gemini API ──
+    // Convert our messages format to Gemini's format:
+    // Gemini uses "user" and "model" roles (not "assistant")
+    // Gemini uses "parts" array with "text" field (not "content" string)
+    const geminiMessages = messages.map(
+      (msg: { role: string; content: string }) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: msg.content }],
+      })
+    );
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: messages.map((msg: { role: string; content: string }) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    });
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: SYSTEM_PROMPT }],
+          },
+          contents: geminiMessages,
+          generationConfig: {
+            maxOutputTokens: 1024,
+          },
+        }),
+      }
+    );
 
-    // Extract the text from Claude's response
+    if (!geminiResponse.ok) {
+      const errorBody = await geminiResponse.text();
+      console.error("Gemini API error:", geminiResponse.status, errorBody);
+      throw new Error(`Gemini API returned ${geminiResponse.status}`);
+    }
+
+    const geminiData = await geminiResponse.json();
+
+    // Extract the text from Gemini's response
     const assistantMessage =
-      response.content[0]?.type === "text" ? response.content[0].text : "";
+      geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // ── Step 4: Return the response ──
     return new Response(
