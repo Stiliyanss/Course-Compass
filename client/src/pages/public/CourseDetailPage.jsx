@@ -5,7 +5,7 @@ import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
 import { useAuth } from '../../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X, Star, Pencil, Trash2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Clock, User, BookOpen, ShoppingCart, ChevronDown, ChevronRight, FileText, Video, File, Download, Lock, Eye, NotebookPen, Save, X, Star, Pencil, Trash2, MessageSquare, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNotes, useSaveNote } from '../../hooks/useNotes';
 import { useProgress, useToggleProgress } from '../../hooks/useProgress';
@@ -18,6 +18,7 @@ import SaleCountdown from '../../components/SaleCountdown';
 import { isSaleActive, getSalePrice } from '../../utils/sale';
 import StarRating from '../../components/StarRating';
 import { useReviews, useMyReview, useCreateReview, useUpdateReview, useDeleteReview } from '../../hooks/useReviews';
+import { useWishlistCheck, useToggleWishlist } from '../../hooks/useWishlist';
 import toast from 'react-hot-toast';
 
 export default function CourseDetailPage() {
@@ -48,6 +49,10 @@ export default function CourseDetailPage() {
   const createReviewMutation = useCreateReview(id);
   const updateReviewMutation = useUpdateReview(id);
   const deleteReviewMutation = useDeleteReview(id);
+
+  // Wishlist
+  const { data: isWishlisted = false } = useWishlistCheck(user ? id : null);
+  const toggleWishlistMutation = useToggleWishlist(id);
 
   // Calculate progress percentage across all sections
   const totalMaterials = sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0);
@@ -354,6 +359,22 @@ export default function CourseDetailPage() {
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {Number(course.price) === 0 ? 'Enroll for Free' : isSaleActive(course) ? 'Buy Now' : 'Buy Course'}
               </Button>
+            )}
+
+            {/* Wishlist button */}
+            {user && (
+              <button
+                onClick={() => toggleWishlistMutation.mutate()}
+                disabled={toggleWishlistMutation.isPending}
+                className={`flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
+                  isWishlisted
+                    ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                    : 'border-slate-700 text-gray-400 hover:text-white hover:border-slate-600'
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-red-400' : ''}`} />
+                {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              </button>
             )}
 
             {/* Course details list */}
