@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, LayoutDashboard, BookOpen, GraduationCap, Users, FileText, ClipboardList, X } from 'lucide-react';
+import { Compass, LayoutDashboard, BookOpen, GraduationCap, Users, FileText, ClipboardList, X, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../utils/constants';
 import { clsx } from 'clsx';
@@ -7,6 +7,7 @@ import { clsx } from 'clsx';
 const studentLinks = [
   { to: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/student/my-courses', label: 'My Courses', icon: BookOpen },
+  { to: '/student/wishlist', label: 'Wishlist', icon: Heart },
   { to: '/student/apply-instructor', label: 'Become Instructor', icon: GraduationCap },
 ];
 

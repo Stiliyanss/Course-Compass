@@ -16,6 +16,7 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import ApplyInstructorPage from '../pages/student/ApplyInstructorPage';
 import MyCoursesPage from '../pages/student/MyCoursesPage';
+import WishlistPage from '../pages/student/WishlistPage';
 import StudentDashboardPage from '../pages/student/StudentDashboardPage';
 import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
@@ -87,6 +88,10 @@ const router = createBrowserRouter([
           {
             path: '/student/my-courses',
             element: <MyCoursesPage />,
+          },
+          {
+            path: '/student/wishlist',
+            element: <WishlistPage />,
           },
           {
             path: '/student/apply-instructor',
