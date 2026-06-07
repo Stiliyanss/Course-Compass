@@ -31,6 +31,7 @@ export default function CourseFormPage() {
     description: '',
     price: '',
     duration: '',
+    category: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -48,6 +49,7 @@ export default function CourseFormPage() {
         description: existingCourse.description || '',
         price: existingCourse.price?.toString() || '',
         duration: existingCourse.duration || '',
+        category: existingCourse.category || '',
       });
       // Show existing image as preview
       if (existingCourse.image_url) {
@@ -234,6 +236,33 @@ export default function CourseFormPage() {
             className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none"
           />
           {errors.description && <p className="mt-1 text-sm text-red-400">{errors.description}</p>}
+        </div>
+
+        {/* Category */}
+        <div>
+          <label htmlFor="category" className="mb-1.5 block text-sm font-medium text-gray-300">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-purple-500 focus:ring-1 focus:ring-purple-500 cursor-pointer"
+          >
+            <option value="" disabled>Select a category</option>
+            <option value="Development">Development</option>
+            <option value="Business">Business</option>
+            <option value="Finance & Accounting">Finance &amp; Accounting</option>
+            <option value="IT & Software">IT &amp; Software</option>
+            <option value="Office Productivity">Office Productivity</option>
+            <option value="Personal Development">Personal Development</option>
+            <option value="Design">Design</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Health & Fitness">Health &amp; Fitness</option>
+            <option value="Music">Music</option>
+          </select>
+          {errors.category && <p className="mt-1 text-sm text-red-400">{errors.category}</p>}
         </div>
 
         {/* Price + Duration */}

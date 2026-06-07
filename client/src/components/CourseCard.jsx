@@ -51,7 +51,12 @@ export default function CourseCard({ course }) {
 
       {/* Card content */}
       <div className="p-5 space-y-3">
-        {/* Title */}
+        {/* Category + Title */}
+        {course.category && (
+          <span className="inline-block rounded-full bg-purple-500/10 border border-purple-500/20 px-2.5 py-0.5 text-xs font-medium text-purple-300">
+            {course.category}
+          </span>
+        )}
         <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-purple-400 transition-colors">
           {course.title}
         </h3>

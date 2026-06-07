@@ -48,6 +48,9 @@ export function validateCourse(values) {
   if (!values.duration) {
     errors.duration = 'Duration is required';
   }
+  if (!values.category) {
+    errors.category = 'Category is required';
+  }
   return errors;
 }
 
