@@ -32,10 +32,11 @@ export default function AiChat() {
       const response = await sendChatMessage(updatedMessages);
       setMessages((prev) => [...prev, { role: 'assistant', content: response }]);
     } catch (err) {
-      toast.error('Failed to get response');
+      const message = err.message || 'Something went wrong';
+      toast.error(message);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' },
+        { role: 'assistant', content: message },
       ]);
     } finally {
       setIsLoading(false);

@@ -133,6 +133,36 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── Step 2.5: Rate limiting — 20 requests per user per hour ──
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const { count, error: countError } = await supabaseClient
+      .from("chat_rate_limits")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("requested_at", oneHourAgo);
+
+    if (countError) {
+      console.error("Rate limit check error:", countError);
+    }
+
+    if ((count ?? 0) >= 20) {
+      return new Response(
+        JSON.stringify({
+          error: "You've reached the limit of 20 messages per hour. Please try again later.",
+        }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Log this request for rate limiting
+    await supabaseClient
+      .from("chat_rate_limits")
+      .insert({ user_id: user.id });
+
     // ── Step 3: Call the Groq API ──
     // Groq uses the OpenAI-compatible format (same roles: user/assistant)
     const apiKey = Deno.env.get("GROQ_API_KEY");
