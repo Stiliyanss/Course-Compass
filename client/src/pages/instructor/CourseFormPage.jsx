@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCourse, useCreateCourse, useUpdateCourse } from '../../hooks/useCourses';
-import { uploadCourseImage } from '../../api/courses';
+import { uploadCourseImage, uploadPreviewVideo } from '../../api/courses';
 import { validateCourse, hasErrors } from '../../utils/validators';
-import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Video } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -32,6 +32,7 @@ export default function CourseFormPage() {
     price: '',
     duration: '',
     category: '',
+    preview_video_url: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -40,6 +41,11 @@ export default function CourseFormPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Video state
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
+  const videoInputRef = useRef(null);
 
   // When editing, pre-fill the form once the course data loads
   useEffect(() => {
@@ -50,10 +56,14 @@ export default function CourseFormPage() {
         price: existingCourse.price?.toString() || '',
         duration: existingCourse.duration || '',
         category: existingCourse.category || '',
+        preview_video_url: existingCourse.preview_video_url || '',
       });
       // Show existing image as preview
       if (existingCourse.image_url) {
         setImagePreview(existingCourse.image_url);
+      }
+      if (existingCourse.preview_video_url) {
+        setVideoPreview(existingCourse.preview_video_url);
       }
     }
   }, [existingCourse]);
@@ -92,6 +102,32 @@ export default function CourseFormPage() {
     }
   }
 
+  function handleVideoSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please select a video file');
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('Video must be under 100MB');
+      return;
+    }
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  }
+
+  function removeVideo() {
+    setVideoFile(null);
+    setVideoPreview(null);
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -109,13 +145,20 @@ export default function CourseFormPage() {
         price: parseFloat(form.price),
       };
 
+      // Remove preview_video_url from courseData — it's handled by the file upload
+      delete courseData.preview_video_url;
+
       if (isEditing) {
-        // EDIT MODE:
-        // 1. If a new image was selected, upload it using the existing course ID
-        // 2. Update the course with the form data + new image URL
         if (imageFile) {
           const imageUrl = await uploadCourseImage(imageFile, id);
           courseData.image_url = imageUrl;
+        }
+        if (videoFile) {
+          const videoUrl = await uploadPreviewVideo(videoFile, id);
+          courseData.preview_video_url = videoUrl;
+        } else if (!videoPreview) {
+          // Video was removed
+          courseData.preview_video_url = '';
         }
 
         updateMutation.mutate(
@@ -136,30 +179,34 @@ export default function CourseFormPage() {
         // 3. Update the course with the image URL
         createMutation.mutate(courseData, {
           onSuccess: async (newCourse) => {
-            if (imageFile) {
-              try {
-                const imageUrl = await uploadCourseImage(imageFile, newCourse.id);
-                // Update the newly created course with the image URL
-                updateMutation.mutate(
-                  { id: newCourse.id, image_url: imageUrl },
-                  {
-                    onSuccess: () => {
-                      toast.success('Course created');
-                      navigate('/instructor/courses');
-                    },
-                    onError: () => {
-                      // Course was created but image update failed
-                      toast.success('Course created (image upload failed)');
-                      navigate('/instructor/courses');
-                    },
-                    onSettled: () => setIsSaving(false),
-                  }
-                );
-              } catch {
-                toast.success('Course created (image upload failed)');
-                navigate('/instructor/courses');
-                setIsSaving(false);
+            const updates = {};
+
+            try {
+              if (imageFile) {
+                updates.image_url = await uploadCourseImage(imageFile, newCourse.id);
               }
+              if (videoFile) {
+                updates.preview_video_url = await uploadPreviewVideo(videoFile, newCourse.id);
+              }
+            } catch {
+              // Continue even if uploads fail
+            }
+
+            if (Object.keys(updates).length > 0) {
+              updateMutation.mutate(
+                { id: newCourse.id, ...updates },
+                {
+                  onSuccess: () => {
+                    toast.success('Course created');
+                    navigate('/instructor/courses');
+                  },
+                  onError: () => {
+                    toast.success('Course created (some uploads failed)');
+                    navigate('/instructor/courses');
+                  },
+                  onSettled: () => setIsSaving(false),
+                }
+              );
             } else {
               toast.success('Course created');
               navigate('/instructor/courses');
@@ -330,6 +377,48 @@ export default function CourseFormPage() {
             type="file"
             accept="image/*"
             onChange={handleImageSelect}
+            className="hidden"
+          />
+        </div>
+
+        {/* Preview Video */}
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-gray-300">
+            Preview Video (optional)
+          </label>
+
+          {videoPreview ? (
+            <div className="relative overflow-hidden rounded-lg border border-slate-800">
+              <video
+                src={videoPreview}
+                controls
+                className="w-full max-h-64 object-contain bg-black"
+              />
+              <button
+                type="button"
+                onClick={removeVideo}
+                className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => videoInputRef.current?.click()}
+              className="flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-700 bg-slate-800/50 px-6 py-8 text-gray-400 hover:border-purple-500/50 hover:text-gray-300 transition-colors"
+            >
+              <Video className="h-8 w-8" />
+              <span className="text-sm">Click to upload a preview video</span>
+              <span className="text-xs text-gray-500">MP4, WebM, MOV — max 100MB</span>
+            </button>
+          )}
+
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            onChange={handleVideoSelect}
             className="hidden"
           />
         </div>

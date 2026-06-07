@@ -29,6 +29,28 @@ export async function uploadCourseImage(file, courseId) {
 }
 
 /**
+ * Upload a preview video to Supabase Storage.
+ *
+ * File is stored as: course-previews/{courseId}.{extension}
+ */
+export async function uploadPreviewVideo(file, courseId) {
+  const ext = file.name.split('.').pop();
+  const filePath = `${courseId}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from('course-previews')
+    .upload(filePath, file, { upsert: true });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('course-previews')
+    .getPublicUrl(filePath);
+
+  return `${publicUrl}?t=${Date.now()}`;
+}
+
+/**
  * Fetch published courses, optionally filtered by search term.
  * Joins the instructor's profile to get their name.
  */

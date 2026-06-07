@@ -189,20 +189,31 @@ export default function CourseDetailPage() {
       <div className="grid gap-6 sm:gap-10 lg:grid-cols-3">
         {/* Left column — course info (takes 2/3 on large screens) */}
         <div className="space-y-6 sm:space-y-8 lg:col-span-2">
-          {/* Thumbnail */}
-          <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
-            {course.image_url ? (
-              <img
-                src={course.image_url}
-                alt={course.title}
-                className="h-full w-full object-cover"
+          {/* Preview Video or Thumbnail */}
+          {course.preview_video_url ? (
+            <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-black">
+              <video
+                src={course.preview_video_url}
+                controls
+                poster={course.image_url || undefined}
+                className="h-full w-full object-contain"
               />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-600">
-                No image
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
+              {course.image_url ? (
+                <img
+                  src={course.image_url}
+                  alt={course.title}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-600">
+                  No image
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Title */}
           <h1
