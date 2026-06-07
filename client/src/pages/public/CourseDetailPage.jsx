@@ -50,10 +50,6 @@ export default function CourseDetailPage() {
   const updateReviewMutation = useUpdateReview(id);
   const deleteReviewMutation = useDeleteReview(id);
 
-  // Wishlist
-  const { data: isWishlisted = false } = useWishlistCheck(user ? id : null);
-  const toggleWishlistMutation = useToggleWishlist(id);
-
   // Calculate progress percentage across all sections
   const totalMaterials = sections.reduce((sum, s) => sum + (s.materials?.length || 0), 0);
   const completedCount = totalMaterials > 0
@@ -88,6 +84,10 @@ export default function CourseDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Wishlist
+  const { data: isWishlisted = false } = useWishlistCheck(user ? id : null);
+  const toggleWishlistMutation = useToggleWishlist(id);
 
   // Loading state for the buy button so we can show a spinner
   const [purchasing, setPurchasing] = useState(false);
