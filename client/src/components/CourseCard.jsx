@@ -1,10 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Clock, User } from 'lucide-react';
+import { Clock, User, Heart } from 'lucide-react';
 import { isSaleActive, getSalePrice } from '../utils/sale';
+import { useAuth } from '../context/AuthContext';
+import { useWishlistCheck, useToggleWishlist } from '../hooks/useWishlist';
 import SaleCountdown from './SaleCountdown';
 import StarRating from './StarRating';
 
 export default function CourseCard({ course }) {
+  const { user } = useAuth();
+  const { data: isWishlisted } = useWishlistCheck(user ? course.id : null);
+  const toggleMutation = useToggleWishlist(course.id);
   return (
     <Link
       to={`/courses/${course.id}`}
@@ -27,6 +32,20 @@ export default function CourseCard({ course }) {
           <span className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white shadow-lg">
             -{Number(course.discount_percent)}%
           </span>
+        )}
+        {user && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleMutation.mutate();
+            }}
+            className="absolute top-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/70"
+          >
+            <Heart
+              className={`h-4 w-4 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white/70 hover:text-red-400'}`}
+            />
+          </button>
         )}
       </div>
 
