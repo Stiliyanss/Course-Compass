@@ -10,6 +10,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
+
 // CORS headers — needed because the browser (localhost:5173) calls this
 // function on a different domain (supabase project URL).
 const corsHeaders = {
@@ -133,6 +134,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    const {data: profile} = await supabaseClient
+    .from('profiles')
+    .select('role','full_name')
+    .eq('id', user.id)
+    .single();
+
+    const userContext = profile ? `\n\nThe user you're talking to is ${profile.full_name}, who has the ${profile.role} role. Tailor your answers to this role.` : '';
+
+    console.log('Profile fetch result:', { profile, profileError });
+console.log('User context being added:', userContext);
     // ── Step 2.5: Rate limiting — 20 requests per user per hour ──
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
@@ -178,7 +189,7 @@ Deno.serve(async (req) => {
           model: "llama-3.3-70b-versatile",
           max_tokens: 1024,
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: SYSTEM_PROMPT + userContext },
             ...messages.map((msg: { role: string; content: string }) => ({
               role: msg.role,
               content: msg.content,
