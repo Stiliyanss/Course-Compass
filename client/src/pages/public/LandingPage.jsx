@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Users, Award, ArrowRight, Sparkles } from 'lucide-react';
+import { BookOpen, Users, Award, ArrowRight, Sparkles, PlusCircle, BarChart3, Layers, TrendingUp } from 'lucide-react';
 import { ROLES } from '../../utils/constants';
 import Button from '../../components/ui/Button';
 import BecomeInstructor from '../../components/BecomeInstructor';
@@ -26,6 +26,8 @@ const features = [
 export default function LandingPage() {
   const { user, profile } = useAuth();
   const isStudent = user && profile?.role === ROLES.STUDENT;
+  const isInstructor = user && profile?.role === ROLES.INSTRUCTOR;
+
 
   return (
     <>
@@ -110,6 +112,9 @@ export default function LandingPage() {
       {/* Become an Instructor — only visible to logged-in students */}
       {isStudent && <BecomeInstructor />}
 
+      {/* Instructor section — only visible to logged-in instructors */}
+      {isInstructor && <InstructorSection />}
+
       {/* CTA Section */}
       {!user && (
         <section className="relative overflow-hidden border-t border-slate-800 py-20">
@@ -134,5 +139,104 @@ export default function LandingPage() {
         </section>
       )}
     </>
+  );
+}
+
+function InstructorSection() {
+  return (
+    <section className="relative overflow-hidden border-t border-slate-800 py-12 sm:py-20">
+      {/* Background glow */}
+      <div className="absolute top-0 left-1/3 h-72 w-72 rounded-full bg-purple-600/10 blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 h-56 w-56 rounded-full bg-amber-500/8 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex flex-col items-center gap-10 lg:flex-row lg:gap-16">
+          {/* Left — text content */}
+          <div className="flex-1 text-center lg:text-left">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300">
+              <BarChart3 className="h-3 w-3" />
+              Instructor Hub
+            </div>
+            <h2
+              className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Share your knowledge
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-amber-400 bg-clip-text text-transparent">
+                with the world
+              </span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-gray-400 lg:mx-0">
+              Create engaging courses, organize content into sections, upload materials, and track how your students are progressing — all from one dashboard.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
+              <Link to="/instructor/courses/new">
+                <Button className="px-6 py-3 text-base">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New Course
+                </Button>
+              </Link>
+              <Link to="/instructor/dashboard">
+                <Button variant="outline" className="px-6 py-3 text-base">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right — feature cards */}
+          <div className="w-full max-w-md space-y-4 lg:flex-1">
+            {[
+              {
+                icon: Layers,
+                title: 'Organize with Sections',
+                desc: 'Structure your course into clear sections with drag-and-drop reordering.',
+                color: 'purple',
+              },
+              {
+                icon: BookOpen,
+                title: 'Upload Materials',
+                desc: 'Add PDFs, videos, and documents that students can access anytime.',
+                color: 'blue',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Track Performance',
+                desc: 'See enrollment numbers, revenue, and student progress in real time.',
+                color: 'amber',
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="group flex items-start gap-4 rounded-xl border border-slate-800 bg-slate-900/50 p-5 transition-all hover:border-purple-500/30 hover:bg-slate-900"
+              >
+                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border ${
+                  item.color === 'purple'
+                    ? 'bg-purple-500/10 border-purple-500/20'
+                    : item.color === 'blue'
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : 'bg-amber-500/10 border-amber-500/20'
+                }`}>
+                  <item.icon className={`h-5 w-5 ${
+                    item.color === 'purple'
+                      ? 'text-purple-400'
+                      : item.color === 'blue'
+                      ? 'text-blue-400'
+                      : 'text-amber-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">{item.title}</h3>
+                  <p className="mt-1 text-sm text-gray-400">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
