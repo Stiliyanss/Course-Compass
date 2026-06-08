@@ -429,18 +429,39 @@ export default function CourseDetailPage() {
 
             {/* Wishlist button */}
             {user && (
-              <button
+              <motion.button
                 onClick={() => toggleWishlistMutation.mutate()}
                 disabled={toggleWishlistMutation.isPending}
-                className={`flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
+                whileTap={{ scale: 0.95 }}
+                className={`relative flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors overflow-hidden ${
                   isWishlisted
                     ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
                     : 'border-slate-700 text-gray-400 hover:text-white hover:border-slate-600'
                 }`}
               >
-                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-red-400' : ''}`} />
+                {/* Ping ring on wishlist add */}
+                <AnimatePresence>
+                  {isWishlisted && (
+                    <motion.span
+                      key="ping"
+                      initial={{ scale: 0.3, opacity: 0.7 }}
+                      animate={{ scale: 3, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: 'easeOut' }}
+                      className="absolute rounded-full border-2 border-red-500 h-6 w-6"
+                    />
+                  )}
+                </AnimatePresence>
+                <motion.span
+                  key={isWishlisted ? 'filled' : 'empty'}
+                  initial={{ scale: 0.5, rotate: -15 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                >
+                  <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-red-400' : ''}`} />
+                </motion.span>
                 {isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
-              </button>
+              </motion.button>
             )}
 
             {/* Course details list */}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Clock, User, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { isSaleActive, getSalePrice } from '../utils/sale';
 import { useAuth } from '../context/AuthContext';
 import { useWishlistCheck, useToggleWishlist } from '../hooks/useWishlist';
@@ -42,9 +43,29 @@ export default function CourseCard({ course }) {
             }}
             className="absolute top-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/70"
           >
-            <Heart
-              className={`h-4 w-4 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white/70 hover:text-red-400'}`}
-            />
+            {/* Ping ring on wishlist add */}
+            <AnimatePresence>
+              {isWishlisted && (
+                <motion.span
+                  key="ping"
+                  initial={{ scale: 0.5, opacity: 0.8 }}
+                  animate={{ scale: 2.2, opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="absolute inset-0 rounded-full border-2 border-red-500"
+                />
+              )}
+            </AnimatePresence>
+            <motion.div
+              key={isWishlisted ? 'filled' : 'empty'}
+              initial={{ scale: 0.5 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+            >
+              <Heart
+                className={`h-4 w-4 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white/70 hover:text-red-400'}`}
+              />
+            </motion.div>
           </button>
         )}
       </div>
