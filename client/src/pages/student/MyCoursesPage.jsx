@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useMyEnrollments } from '../../hooks/useEnrollments';
-import { BookOpen, Clock, User, Search } from 'lucide-react';
+import { BookOpen, Clock, User, Search, GraduationCap, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 
@@ -26,38 +27,120 @@ export default function MyCoursesPage() {
   }
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1
-          className="text-2xl font-bold text-white md:text-3xl"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          My Courses
-        </h1>
-        <p className="mt-1 text-gray-400">
-          Courses you are enrolled in
-        </p>
-      </div>
+    <div className="p-3 space-y-4 sm:p-6 sm:space-y-8">
+      {/* ── Hero banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-purple-950/30 p-5 sm:p-8"
+      >
+        {/* Decorative glow orbs */}
+        <div className="absolute -top-20 -right-20 h-60 w-60 rounded-full bg-purple-600/10 blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-blue-600/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="mb-2 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300"
+            >
+              <GraduationCap className="h-3 w-3" />
+              My Learning
+            </motion.div>
+            <h1
+              className="text-2xl font-bold text-white sm:text-3xl"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              My Courses
+            </h1>
+            <p className="mt-1 text-sm text-gray-400 sm:text-base">
+              Courses you are enrolled in
+            </p>
+          </div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex gap-3"
+          >
+            <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <BookOpen className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white">{enrollments?.length || 0}</p>
+                <p className="text-xs text-gray-500">Enrolled</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
       {/* Course list */}
       {enrollments.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-12 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="rounded-xl border border-slate-800 bg-slate-900/50 p-12 text-center"
+        >
           <BookOpen className="mx-auto h-10 w-10 text-gray-600" />
           <p className="mt-3 text-gray-400">You haven't enrolled in any courses yet</p>
-          <Link to="/courses" className="mt-4 inline-block">
-            <Button>
-              <Search className="mr-2 h-4 w-4" />
-              Browse Courses
-            </Button>
+          <p className="mt-1 text-sm text-gray-500">Explore our catalog and find something you love</p>
+          <Link to="/courses" className="mt-5 inline-block">
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <Button>
+                <Search className="mr-2 h-4 w-4" />
+                Browse Courses
+              </Button>
+            </motion.div>
           </Link>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {enrollments.map((enrollment) => (
-            <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
-          ))}
-        </div>
+        <>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="text-sm text-gray-500"
+          >
+            {enrollments.length} {enrollments.length === 1 ? 'course' : 'courses'} in your library
+          </motion.p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {enrollments.map((enrollment, i) => (
+              <motion.div
+                key={enrollment.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: Math.min(i * 0.08, 0.5), ease: 'easeOut' }}
+                whileHover={{ y: -4 }}
+              >
+                <EnrollmentCard enrollment={enrollment} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Discover more link */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+            className="text-center pt-2"
+          >
+            <Link
+              to="/courses"
+              className="inline-flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              Discover more courses
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+        </>
       )}
     </div>
   );
