@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCourse } from '../../hooks/useCourses';
 import { useSections } from '../../hooks/useSections';
 import { useEnrollmentCheck } from '../../hooks/useEnrollments';
@@ -178,53 +179,73 @@ export default function CourseDetailPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-12">
       {/* Back link */}
-      <Link
-        to="/courses"
-        className="mb-8 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <ArrowLeft className="h-4 w-4" />
-        Back to courses
-      </Link>
+        <Link
+          to="/courses"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to courses
+        </Link>
+      </motion.div>
 
       <div className="grid gap-6 sm:gap-10 lg:grid-cols-3">
         {/* Left column — course info (takes 2/3 on large screens) */}
         <div className="space-y-6 sm:space-y-8 lg:col-span-2">
           {/* Preview Video or Thumbnail */}
-          {course.preview_video_url ? (
-            <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-black">
-              <video
-                src={course.preview_video_url}
-                controls
-                poster={course.image_url || undefined}
-                className="h-full w-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
-              {course.image_url ? (
-                <img
-                  src={course.image_url}
-                  alt={course.title}
-                  className="h-full w-full object-cover"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {course.preview_video_url ? (
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-black">
+                <video
+                  src={course.preview_video_url}
+                  controls
+                  poster={course.image_url || undefined}
+                  className="h-full w-full object-contain"
                 />
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-600">
-                  No image
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-800">
+                {course.image_url ? (
+                  <img
+                    src={course.image_url}
+                    alt={course.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-gray-600">
+                    No image
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
 
           {/* Title */}
-          <h1
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {course.title}
-          </h1>
+          </motion.h1>
 
           {/* Meta row — instructor + duration */}
-          <div className="flex flex-wrap items-center gap-6 text-gray-400">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex flex-wrap items-center gap-6 text-gray-400"
+          >
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span>{course.instructor?.full_name || 'Unknown instructor'}</span>
@@ -235,19 +256,27 @@ export default function CourseDetailPage() {
                 <span>{course.duration}</span>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Description */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
             <h2 className="mb-3 text-xl font-semibold text-white">About this course</h2>
             <p className="leading-relaxed text-gray-300 whitespace-pre-line">
               {course.description || 'No description provided.'}
             </p>
-          </div>
+          </motion.div>
 
           {/* Course Content — section list as a table of contents */}
           {sections.length > 0 && (
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
               <h2 className="mb-3 text-xl font-semibold text-white">Course Content</h2>
               <p className="mb-4 text-sm text-gray-400">
                 {sections.length} {sections.length === 1 ? 'section' : 'sections'} &middot;{' '}
@@ -283,28 +312,42 @@ export default function CourseDetailPage() {
               )}
 
               <div className="space-y-2">
-                {sections.map((section) => (
-                  <SectionPreview
+                {sections.map((section, i) => (
+                  <motion.div
                     key={section.id}
-                    section={section}
-                    isEnrolled={isEnrolled}
-                    onPreview={handlePreview}
-                    onComment={setCommentMaterial}
-                    noteContent={notes[section.id] || ''}
-                    onSaveNote={saveNoteMutation}
-                    completedSet={completedSet}
-                    onToggleProgress={toggleProgress}
-                  />
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.5 + Math.min(i * 0.08, 0.4) }}
+                  >
+                    <SectionPreview
+                      section={section}
+                      isEnrolled={isEnrolled}
+                      onPreview={handlePreview}
+                      onComment={setCommentMaterial}
+                      noteContent={notes[section.id] || ''}
+                      onSaveNote={saveNoteMutation}
+                      completedSet={completedSet}
+                      onToggleProgress={toggleProgress}
+                    />
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Instructor card */}
           {course.instructor && (
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+            >
               <h2 className="mb-3 text-xl font-semibold text-white">Instructor</h2>
-              <div className="flex items-start gap-4 rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+              <motion.div
+                whileHover={{ borderColor: 'rgba(168,85,247,0.3)' }}
+                transition={{ duration: 0.2 }}
+                className="flex items-start gap-4 rounded-xl border border-slate-800 bg-slate-900/50 p-5"
+              >
                 {course.instructor.avatar_url ? (
                   <img
                     src={course.instructor.avatar_url}
@@ -319,8 +362,8 @@ export default function CourseDetailPage() {
                 <div>
                   <p className="font-semibold text-white">{course.instructor.full_name}</p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
 
           {/* ── Reviews section ── */}
@@ -337,7 +380,12 @@ export default function CourseDetailPage() {
         </div>
 
         {/* Right column — purchase card (sticky on scroll) */}
-        <div className="lg:col-span-1">
+        <motion.div
+          className="lg:col-span-1"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <div className="sticky top-20 rounded-xl border border-slate-800 bg-slate-900/70 p-4 space-y-5 sm:top-24 sm:p-6">
             {/* Price */}
             <div className="text-center space-y-2">
@@ -361,15 +409,22 @@ export default function CourseDetailPage() {
 
             {/* Buy button or enrolled badge */}
             {isEnrolled ? (
-              <div className="flex items-center justify-center gap-2 rounded-lg bg-green-500/10 border border-green-500/30 py-3 text-green-400 font-medium">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center gap-2 rounded-lg bg-green-500/10 border border-green-500/30 py-3 text-green-400 font-medium"
+              >
                 <BookOpen className="h-5 w-5" />
                 You are enrolled
-              </div>
+              </motion.div>
             ) : (
-              <Button className="w-full" size="lg" onClick={handlePurchase} loading={purchasing}>
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {Number(course.price) === 0 ? 'Enroll for Free' : isSaleActive(course) ? 'Buy Now' : 'Buy Course'}
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button className="w-full" size="lg" onClick={handlePurchase} loading={purchasing}>
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  {Number(course.price) === 0 ? 'Enroll for Free' : isSaleActive(course) ? 'Buy Now' : 'Buy Course'}
+                </Button>
+              </motion.div>
             )}
 
             {/* Wishlist button */}
@@ -405,23 +460,27 @@ export default function CourseDetailPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
       {/* Preview modal — rendered when a student clicks a material */}
-      {preview && (
-        <MaterialPreview
-          material={preview.material}
-          signedUrl={preview.signedUrl}
-          onClose={() => setPreview(null)}
-        />
-      )}
+      <AnimatePresence>
+        {preview && (
+          <MaterialPreview
+            material={preview.material}
+            signedUrl={preview.signedUrl}
+            onClose={() => setPreview(null)}
+          />
+        )}
+      </AnimatePresence>
       {/* Comments panel — slides in from the right */}
-      {commentMaterial && (
-        <MaterialComments
-          material={commentMaterial}
-          onClose={() => setCommentMaterial(null)}
-        />
-      )}
+      <AnimatePresence>
+        {commentMaterial && (
+          <MaterialComments
+            material={commentMaterial}
+            onClose={() => setCommentMaterial(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -539,7 +598,11 @@ function ReviewsSection({ reviews, myReview, isEnrolled, user, courseId, createM
   }
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.6 }}
+    >
       <h2 className="mb-4 text-xl font-semibold text-white flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-purple-400" />
         Reviews
@@ -665,8 +728,14 @@ function ReviewsSection({ reviews, myReview, isEnrolled, user, courseId, createM
         {/* Review list */}
         {reviews.length > 0 && (
           <div className="divide-y divide-slate-800">
-            {reviews.map((review) => (
-              <div key={review.id} className="p-5 hover:bg-slate-800/20 transition-colors">
+            {reviews.map((review, i) => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: Math.min(i * 0.08, 0.4) }}
+                className="p-5 hover:bg-slate-800/20 transition-colors"
+              >
                 <div className="flex items-start gap-3">
                   {/* Avatar */}
                   <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden border border-slate-700 bg-slate-800">
@@ -699,12 +768,12 @@ function ReviewsSection({ reviews, myReview, isEnrolled, user, courseId, createM
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
