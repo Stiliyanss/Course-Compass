@@ -22,6 +22,7 @@ import ManageCoursesPage from '../pages/instructor/ManageCoursesPage';
 import CourseFormPage from '../pages/instructor/CourseFormPage';
 import ManageSectionsPage from '../pages/instructor/ManageSectionsPage';
 import InstructorDashboardPage from '../pages/instructor/InstructorDashboardPage';
+import InstructorCourseDetailPage from '../pages/instructor/InstructorCourseDetailPage';
 import AdminApplicationsPage from '../pages/admin/AdminApplicationsPage';
 import AdminUsersPage from '../pages/admin/AdminUsersPage';
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
@@ -120,6 +121,10 @@ const router = createBrowserRouter([
           {
             path: '/instructor/courses/new',
             element: <CourseFormPage />,
+          },
+          {
+            path: '/instructor/courses/:id',
+            element: <InstructorCourseDetailPage />,
           },
           {
             path: '/instructor/courses/:id/edit',

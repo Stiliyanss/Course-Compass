@@ -203,7 +203,9 @@ function CourseRow({
           </div>
 
           <div className="min-w-0">
-            <h3 className="font-semibold text-white truncate">{course.title}</h3>
+            <Link to={`/instructor/courses/${course.id}`} className="font-semibold text-white truncate hover:text-purple-400 transition-colors">
+              {course.title}
+            </Link>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-3 sm:text-sm">
               <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${style.badge}`}>
                 {style.label}
