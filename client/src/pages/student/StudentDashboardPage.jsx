@@ -48,20 +48,42 @@ export default function StudentDashboardPage() {
         <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-blue-600/10 blur-3xl" />
 
         <div className="relative flex items-center justify-between">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300">
-              <Sparkles className="h-3 w-3" />
-              Learning Dashboard
+          <div className="flex items-center gap-5">
+            {/* Student avatar */}
+            <div className="hidden sm:block relative shrink-0">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/30 blur-sm" />
+              <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-purple-500/30 overflow-hidden bg-slate-800">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-purple-600/20 to-slate-800">
+                    <span className="text-2xl font-bold text-purple-300">
+                      {profile?.full_name?.charAt(0)?.toUpperCase() || '?'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <h1
-              className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}
-            </h1>
-            <p className="mt-2 text-gray-400 max-w-md">
-              Track your learning journey, monitor progress, and keep building your skills.
-            </p>
+
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300">
+                <Sparkles className="h-3 w-3" />
+                Learning Dashboard
+              </div>
+              <h1
+                className="text-2xl font-bold text-white sm:text-3xl md:text-4xl"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}
+              </h1>
+              <p className="mt-2 text-gray-400 max-w-md">
+                Track your learning journey, monitor progress, and keep building your skills.
+              </p>
+            </div>
           </div>
 
           {/* Overall progress ring */}
